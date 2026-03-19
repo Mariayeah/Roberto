@@ -1,4 +1,4 @@
 map_server:
   ros__parameters:
-    yaml_filename: "/opt/ros/jazzy/share/nav2_bringup/maps/warehouse.yaml"
-    use_sim_time: false
+    yaml_filename: ""
+    use_sim_time: true
