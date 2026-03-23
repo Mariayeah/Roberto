@@ -14,12 +14,10 @@ class ObstacleDetectionNode(Node):
             10
         )
 
-        self.threshold = 0.5  # distancia en metros
-
+        self.threshold = 0.2
         self.get_logger().info('Obstacle Detection Node started')
 
     def scan_callback(self, msg):
-        # Filtrar valores infinitos
         valid_ranges = [r for r in msg.ranges if r != float('inf')]
 
         if not valid_ranges:
@@ -29,13 +27,12 @@ class ObstacleDetectionNode(Node):
 
         if min_distance < self.threshold:
             self.get_logger().warn(
-                f'⚠️ Obstacle detected at {min_distance:.2f} meters'
+                f'⚠️ Obstacle detected at {min_distance:.2f} m'
             )
         else:
             self.get_logger().info(
-                f'Clear path, nearest object at {min_distance:.2f} meters'
+                f'Clear path: {min_distance:.2f} m'
             )
-
 
 def main(args=None):
     rclpy.init(args=args)
@@ -43,7 +40,6 @@ def main(args=None):
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
