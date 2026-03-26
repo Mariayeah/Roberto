@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
       		 'obstacle_detection_node = roberto_lidar.obstacle_detection_node:main',
+             'obstacle_avoidance = roberto_lidar.obstacle_avoidance_node:main',
         ],
     },
 )
