@@ -11,7 +11,7 @@
 
 ## Descripción
 
-Este proyecto utiliza **ROS 2** (Robot Operating System 2) para crear un robot guía para aeropuertos. El proyecto implementa nodos, mensajes y servicios de ROS 2 para navegación, visión artificial, reconocimiento, control por web.
+Este proyecto utiliza **ROS 2** (Robot Operating System 2) para crear un robot guía para aeropuertos. El proyecto implementa nodos, mensajes y servicios de ROS 2 para navegación, visión artificial, reconocimiento y control por web.
 
 ## Requisitos
 
@@ -55,7 +55,6 @@ Este proyecto utiliza **ROS 2** (Robot Operating System 2) para crear un robot g
 
 3. **Herramientas de diagnóstico:**
   
-
 * **Listar tópicos activos:**
 
     ros2 topic list
@@ -70,75 +69,57 @@ Este proyecto utiliza **ROS 2** (Robot Operating System 2) para crear un robot g
 
 ## Estructura del Proyecto
 
-    Roberto/
-    ├── roberto/
+    roberto/                      <-- Carpeta raíz del repositorio (clonado en src/)
+    ├── README.md
+    ├── roberto/                  <-- Metapaquete
+    │   ├── CMakeLists.txt        
+    │   └── package.xml
+    ├── roberto_lidar/            <-- Paquete de funcionalidad (Python)
+    │   ├── launch/
+    │   ├── resource/
+    │   ├── rviz/
+    │   ├── test/
+    │   ├── package.xml
+    │   ├── setup.cfg
+    │   └── setup.py
+    ├── roberto_mundo/            <-- Paquete de funcionalidad (C++/CMake)
+    │   ├── include/
+    │   ├── launch/
+    │   ├── maps/
+    │   ├── models/
+    │   ├── params/
+    │   ├── rviz/
+    │   ├── src/
+    │   ├── urdf/
+    │   ├── worlds/
     │   ├── CMakeLists.txt
     │   └── package.xml
-    └── roberto_ejemplo/
+    ├── roberto_nav_punto/        <-- Paquete de funcionalidad (Python)
+    │   ├── config/
+    │   ├── launch/
+    │   ├── resource/
+    │   ├── roberto_nav_punto/
+    │   ├── rviz/
+    │   ├── test/
+    │   ├── package.xml
+    │   ├── setup.cfg
+    │   └── setup.py
+    └── roberto_nav_ruta/         <-- Paquete de funcionalidad (Python)
         ├── launch/
-        ├── config/
-        ├── roberto_ejemplo/
-        ├── setup.py
+        ├── param/
+        ├── resource/
+        ├── roberto_nav_ruta/
+        ├── rviz/
+        ├── test/
+        ├── package.xml
         ├── setup.cfg
-        └── package.xml
+        └── setup.py
 
-**`roberto/CMakeLists.txt`:**
+**`roberto/roberto/CMakeLists.txt`:**
 
-    cmake_minimum_required(VERSION 3.8)
-    project(roberto)
-    
-    find_package(ament_cmake REQUIRED)
-    ament_package()
+```cmake
+cmake_minimum_required(VERSION 3.8)
+project(roberto)
 
-**`roberto/package.xml`:**
-
-    <?xml version="1.0"?>
-    <?xml-model href="http://download.ros.org/schema/package_format3.xsd" 
-                 schematypens="http://www.w3.org/2001/XMLSchema"?>
-    <package format="3">
-      <name>roberto</name>
-      <version>0.0.0</version>
-      <description>Metapaquete Roberto ROS 2</description>
-      <maintainer email="tu@email.com">Tu Nombre</maintainer>
-      <license>Apache 2.0</license>
-    
-      <buildtool_depend>ament_cmake</buildtool_depend>
-      <exec_depend>roberto_ejemplo</exec_depend>
-    
-      <export>
-        <build_type>ament_cmake</build_type>
-      </export>
-    </package>
-
-* Nombres en **minúsculas**: `roberto_ejemplo`
-* **Prefijo** + funcionalidad: `roberto_*`
-* **Un paquete por funcionalidad**
-* **Minimizar dependencias**
-* `roberto/` contiene **CMakeLists.txt + package.xml** con `<exec_depend>` de todos los paquetes
-
-## Política de Ramas
-
-**Ramas principales:**
-
-* **master**: Siempre contiene código definitivo y funcional
-* **release**: Ramas de sprint (release01, release02, etc.) con código provisional
-
-**Proceso:**
-
-1. Crear `release01`, `release02`, etc. desde `master` al inicio de cada sprint
-2. Crear ramas **feat**, **fix**, **docs**, etc. desde la release activa
-3. **Integrar**: `rama → releaseXX → master` (solo cuando esté listo)
-4. **Final sprint**: Merge `releaseXX → master`, crear tag, borrar ramas **feat/fix/etc**
-5. **Nunca commits directos en master**
-
-**Estándar de prefijos para ramas y commits:**
-
-* `feat:` Nueva funcionalidad
-* `fix:` Corrección de errores
-* `docs:` Cambios en la documentación
-* `style:` Formato, espaciado, estilo de código (sin cambios funcionales)
-* `refactor:` Refactorización de código (sin cambiar funcionalidad)
-* `perf:` Mejoras de rendimiento
-* `test:` Añadir o modificar pruebas
-* `chore:` Tareas de mantenimiento (scripts, dependencias, etc.)
-
+find_package(ament_cmake REQUIRED)
+ament_package()
