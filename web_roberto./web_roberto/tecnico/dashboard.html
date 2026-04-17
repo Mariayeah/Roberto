@@ -1,34 +1,118 @@
-// server.js
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const api = require('./controller/api_login');
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roberto Control - Dashboard</title>
+    <link rel="stylesheet" href="estilo.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/eventemitter2@6.4.9/lib/eventemitter2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
 
-const app = express();
-const PORT = 3000;
 
-// Middlewares
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+<script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ros2d@0.10.0/build/ros2d.min.js"></script>
 
-// Servir archivos estáticos (tu HTML, CSS, JS del dashboard)
-app.use(express.static(path.join(__dirname, 'client')));
+</head>
+<body>
 
-// Rutas API
-app.use('/api/auth', api);
 
-// Ruta principal para el login
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'tecnico', 'login.html'));
-});
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Robots</h2>
+                <span>5 conectados</span>
+            </div>
+            <ul class="robot-list">
+                <li class="robot-item active">
+                    <div class="robot-info">
+                        <strong>Roberto 1</strong>
+                        <span><i class="ph ph-battery-medium"></i> 67%</span>
+                    </div>
+                    <span class="status online">Activo</span>
+                </li>
+                <li class="robot-item">
+                    <div class="robot-info">
+                        <strong>Roberto 2</strong>
+                        <span><i class="ph ph-battery-full"></i> 92%</span>
+                    </div>
+                    <span class="status online">Activo</span>
+                </li>
+                </ul>
+        </aside>
 
-// Ruta para el dashboard
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'tecnico', 'dashboard.html'));
-});
 
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor en http://localhost:${PORT}`);
-    console.log(`📡 API login: http://localhost:${PORT}/api/auth/login`);
-});
+        <main class="main-content">
+            <header class="top-nav">
+                <div class="logo">Roberto Control</div>
+                <div class="user-actions">
+                    <i class="ph ph-bell"></i>
+                    <i class="ph ph-gear"></i>
+                    <i class="ph ph-user-circle"></i>
+                </div>
+            </header>
+
+
+            <section class="grid-layout">
+                <div class="card video-feed">
+                    <div class="card-header">
+                        <span><i class="ph ph-video-camera"></i> Vista de Cámara - Roberto 1</span>
+                        <span class="live-badge">EN VIVO</span>
+                    </div>
+                    <div class="video-placeholder">
+                        <i class="ph ph-video-camera-slash"></i>
+                        <p>Feed de cámara conectando...</p>
+                    </div>
+                </div>
+
+
+                <div class="card map-section">
+                    <div class="card-header">
+                        <h3>Mapa - Terminal A</h3>
+                        <span class="legend"><span class="dot blue"></span> Posición actual</span>
+                    </div>
+                    <div id="map-canvas" class="map-container">
+                    </div>
+                </div>
+
+
+                <div class="card status-panel">
+                    <h3>Estado</h3>
+                    <div class="stat-row">
+                        <span>Velocidad</span>
+                        <strong>1.0 m/s</strong>
+                    </div>
+                    <div class="progress-bar"><div class="fill" style="width: 40%;"></div></div>
+                    
+                    <ul class="systems-check">
+                        <li>Motores <span class="check">✔ OK</span></li>
+                        <li>Sensores <span class="check">✔ OK</span></li>
+                        <li class="battery-status">Batería <span>87%</span></li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+
+        <aside class="control-panel">
+            <h3>Controlar Robot</h3>
+            <div class="joystick-container">
+                <button class="joy-btn up"><i class="ph ph-arrow-up"></i></button>
+                <div class="joy-row">
+                    <button class="joy-btn left"><i class="ph ph-arrow-left"></i></button>
+                    <div class="center-dot"></div>
+                    <button class="joy-btn right"><i class="ph ph-arrow-right"></i></button>
+                </div>
+                <button class="joy-btn down"><i class="ph ph-arrow-down"></i></button>
+            </div>
+            <button class="stop-btn">
+                <i class="ph ph-stop-circle"></i> PARAR
+            </button>
+            <div class="connection-status">
+                <span class="dot green"></span> Conectado
+            </div>
+        </aside>
+    </div>
+  <script src="main.js"></script>
+</body>
+</html>
