@@ -46,8 +46,8 @@ export class CameraStream {
 // AQUÍ ESTÁ LA FUNCIÓN QUE MAIN.JS ESTABA BUSCANDO
 export function initCamera() {
     // ⚠️ IMPORTANTE: Pon aquí la URL del túnel de tu cámara (el del puerto 8080)
-    // Asegúrate de que empiece por wss://
-    const WSS_CAMERA_URL = "wss://9c12e144502869.lhr.life/";
+    // Se conecta de manera local sin usar túneles externos.
+    const WSS_CAMERA_URL = `ws://${window.location.hostname}:9090/`;
     
     console.log("Inicializando módulo de cámara...");
     const camera = new CameraStream(WSS_CAMERA_URL, 'cameraFeed');

@@ -115,14 +115,7 @@ const MOCK_CATEGORIES = [
     }
 ];
 
-const MOCK_DESTINATIONS = {
-    'puertas': [
-        { id: '10', name: 'Puerta 10', subtitle: 'Embarque', svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5c1.5-1.5 2-3.5 1.5-4.5-1-.5-3 0-4.5 1.5L8 13 6.2 4.8C6.1 4.3 5.7 4 5.3 4s-.5.3-.4.8L9 10l-4.1 3.5H2l3.5 1.5v3l4.1-3.5L14 15l1.8 8.2c.1.4.5.7.9.6.4-.1.7-.5.6-1V21z"/></svg>', time: '2 min', dist: '150m' },
-        { id: '11', name: 'Puerta 11', subtitle: 'Embarque', svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5c1.5-1.5 2-3.5 1.5-4.5-1-.5-3 0-4.5 1.5L8 13 6.2 4.8C6.1 4.3 5.7 4 5.3 4s-.5.3-.4.8L9 10l-4.1 3.5H2l3.5 1.5v3l4.1-3.5L14 15l1.8 8.2c.1.4.5.7.9.6.4-.1.7-.5.6-1V21z"/></svg>', time: '3 min', dist: '350m' },
-        { id: '12', name: 'Puerta 12', subtitle: 'Embarque VIP', svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5c1.5-1.5 2-3.5 1.5-4.5-1-.5-3 0-4.5 1.5L8 13 6.2 4.8C6.1 4.3 5.7 4 5.3 4s-.5.3-.4.8L9 10l-4.1 3.5H2l3.5 1.5v3l4.1-3.5L14 15l1.8 8.2c.1.4.5.7.9.6.4-.1.7-.5.6-1V21z"/></svg>', time: '4 min', dist: '480m' },
-        { id: '13', name: 'Puerta 13', subtitle: 'Embarque', svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5c1.5-1.5 2-3.5 1.5-4.5-1-.5-3 0-4.5 1.5L8 13 6.2 4.8C6.1 4.3 5.7 4 5.3 4s-.5.3-.4.8L9 10l-4.1 3.5H2l3.5 1.5v3l4.1-3.5L14 15l1.8 8.2c.1.4.5.7.9.6.4-.1.7-.5.6-1V21z"/></svg>', time: '5 min', dist: '520m' }
-    ]
-};
+let MOCK_DESTINATIONS = {};
 
 // Reusable card renderer
 function renderCards(gridId, items, onClickCallback) {
@@ -226,8 +219,30 @@ function initCategoriesView() {
 // ------------------------------------
 // Inicialización subpágina de destinos
 // ------------------------------------
-function initSubcategoryView() {
+async function initSubcategoryView() {
     const t = applyLanguage();
+
+    try {
+        const res = await fetch('/api/destinos');
+        const data = await res.json();
+        if (data.success) {
+            MOCK_DESTINATIONS = data.data.destinations;
+            
+            // Add SVG icons to loaded destinations based on category
+            const categoryData = MOCK_CATEGORIES.reduce((acc, cat) => {
+                acc[cat.id] = cat.svgIcon;
+                return acc;
+            }, {});
+            
+            for (let c in MOCK_DESTINATIONS) {
+                MOCK_DESTINATIONS[c].forEach(d => {
+                    if (!d.svgIcon) d.svgIcon = categoryData[c] || categoryData['puertas'];
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Error fetching /api/destinos", e);
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     let cat = urlParams.get('cat');

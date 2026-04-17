@@ -1,11 +1,11 @@
 {
-  "name": "roberto-local-server",
+  "name": "web-roberto-local",
   "version": "1.0.0",
-  "description": "Backend local para la interfaz de Roberto",
-  "main": "server.js",
+  "description": "Servidor local Node.js para Roberto",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

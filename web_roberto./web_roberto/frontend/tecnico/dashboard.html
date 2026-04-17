@@ -59,9 +59,8 @@
                         <span><i class="ph ph-video-camera"></i> Vista de Cámara - Roberto 1</span>
                         <span class="live-badge">EN VIVO</span>
                     </div>
-                    <div class="video-placeholder">
-                        <i class="ph ph-video-camera-slash"></i>
-                        <p>Feed de cámara conectando...</p>
+                    <div class="video-placeholder" style="padding:0; overflow:hidden; position:relative;">
+                        <img id="cameraFeed" src="" alt="Feed de cámara conectando..." style="width:100%; height:100%; object-fit:cover; display:block;">
                     </div>
                 </div>
 
@@ -97,15 +96,15 @@
         <aside class="control-panel">
             <h3>Controlar Robot</h3>
             <div class="joystick-container">
-                <button class="joy-btn up"><i class="ph ph-arrow-up"></i></button>
+                <button class="joy-btn up" id="btn_forward"><i class="ph ph-arrow-up"></i></button>
                 <div class="joy-row">
-                    <button class="joy-btn left"><i class="ph ph-arrow-left"></i></button>
+                    <button class="joy-btn left" id="btn_left"><i class="ph ph-arrow-left"></i></button>
                     <div class="center-dot"></div>
-                    <button class="joy-btn right"><i class="ph ph-arrow-right"></i></button>
+                    <button class="joy-btn right" id="btn_right"><i class="ph ph-arrow-right"></i></button>
                 </div>
-                <button class="joy-btn down"><i class="ph ph-arrow-down"></i></button>
+                <button class="joy-btn down" id="btn_back"><i class="ph ph-arrow-down"></i></button>
             </div>
-            <button class="stop-btn">
+            <button class="stop-btn" id="btn_stop">
                 <i class="ph ph-stop-circle"></i> PARAR
             </button>
             <div class="connection-status">
@@ -114,5 +113,6 @@
         </aside>
     </div>
   <script src="main.js"></script>
+  <script type="module" src="camara/main.js"></script>
 </body>
 </html>
