@@ -70,6 +70,16 @@
                         <h3>Mapa - Terminal A</h3>
                         <span class="legend"><span class="dot blue"></span> Posición actual</span>
                     </div>
+                    <div class="nav-bar" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; background: var(--bg-main); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-dark); display: flex; align-items: center; gap: 6px; margin-right: auto;">
+                            <i class="ph ph-compass" style="color: var(--accent-blue); font-size: 1.2rem;"></i> Navegación
+                        </div>
+                        <label for="zonaSelect" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Destino:</label>
+                        <select id="zonaSelect" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-family: inherit; font-size: 0.9rem; outline: none; background: white; cursor: pointer; min-width: 180px; transition: border-color 0.2s;"></select>
+                        <button onclick="sendGoal()" style="padding: 8px 16px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s, transform 0.1s; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.backgroundColor='#2563eb'" onmouseout="this.style.backgroundColor='var(--accent-blue)'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                            Enviar destino
+                        </button>
+                    </div>
                     <div id="map-canvas" class="map-container">
                     </div>
                 </div>

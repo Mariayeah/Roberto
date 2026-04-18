@@ -80,6 +80,16 @@ def generate_launch_description():
                 'node_names': ['map_server', 'amcl']
             }]
         ),
+        
+        # --- NODO NUEVO: Seguidor de Metas de la Web ---
+        # Este nodo traduce el /goal_pose enviado desde la web a comandos /cmd_vel
+        Node(
+            package='roberto_nav_punto',
+            executable='simple_follower.py',
+            name='simple_follower',
+            output='screen',
+            parameters=[{'use_sim_time': True}]
+        ),
 
         # RViz (Visualizacion opcional)
         # Solo se lanza si el argumento use_rviz es True. 

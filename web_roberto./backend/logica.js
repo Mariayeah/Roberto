@@ -28,6 +28,18 @@ async function getZonas() {
     return rows;
 }
 
+async function getZonaById(id) {
+    const [rows] = await pool.query('SELECT * FROM Zona WHERE ZonaID = ?', [id]);
+    return rows[0];
+}
+
+// --- FUNCIÓN CORREGIDA ---
+async function getAllZonas() {
+    // Agregamos PosX y PosY a la consulta para que el mapa pueda dibujar el punto rojo
+    const [rows] = await pool.query('SELECT ZonaID, Nombre, PosX, PosY FROM Zona');
+    return rows;
+}
+
 async function getRobots() {
     const [rows] = await pool.query('SELECT * FROM Robot');
     return rows;
@@ -46,23 +58,31 @@ async function getEventos(robotId) {
 }
 
 async function logConnectionEvent(robotId, status) {
-    // Registra el evento en la tabla "Evento" y actualiza Robot."UltimaComunicacion"
-    // El tipo de evento puede ser 'Inicio Sistema' para conexión y 'Error de Comunicación' para desconexión
     const tipoEvento = status === 'connected' ? 'Inicio Sistema' : 'Error de Comunicación';
     const desc = status === 'connected' ? 'Robot conectado a interfaz' : 'Robot desconectado de interfaz';
     
-    // Insertar Evento
     await pool.query(
         'INSERT INTO Evento (RobotID, TipoEvento, Descripcion, Gravedad) VALUES (?, ?, ?, ?)',
         [robotId, tipoEvento, desc, status === 'connected' ? 'Notificación' : 'Advertencia']
     );
 
-    // Actualizar Robot
     if (status === 'connected') {
         await pool.query('UPDATE Robot SET UltimaComunicacion = NOW(), EstadoID = 1 WHERE RobotID = ?', [robotId]);
     } else {
         await pool.query('UPDATE Robot SET UltimaComunicacion = NOW(), EstadoID = 3 WHERE RobotID = ?', [robotId]); 
-        // Suponiendo 1 = Disponible/Activo, 3 = Fuera de Servicio/Desconectado
+    }
+}
+
+async function insertPosition(robotId, x, y) {
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO PosicionRobot (RobotID, PosX, PosY, FechaHora) VALUES (?, ?, ?, NOW())',
+            [robotId, x, y]
+        );
+        console.log(`✅ DB Saved: ID ${result.insertId} | x: ${x.toFixed(3)}, y: ${y.toFixed(3)}`);
+    } catch (err) {
+        // This will tell us if the table name is wrong or a column is missing
+        console.error('❌ DATABASE ERROR:', err.message);
     }
 }
 
@@ -71,5 +91,8 @@ module.exports = {
     getZonas,
     getRobots,
     getEventos,
-    logConnectionEvent
+    logConnectionEvent,
+    insertPosition,
+    getZonaById,
+    getAllZonas
 };

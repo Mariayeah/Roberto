@@ -1,6 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const logica = require('./logica');
+const rosClient = require('./rosClient');
+
+// GET /api/position -> Retorna la ultima posicion en memoria (Real-Time)
+router.get('/position', (req, res) => {
+    res.json(rosClient.getLatestPosition());
+});
+
+// GET /api/goal -> Retorna el ultimo goal en memoria
+router.get('/goal', (req, res) => {
+    res.json(rosClient.getCurrentGoal());
+});
+
+// GET /api/zonas -> Lista todas las zonas (id y nombre)
+router.get('/zonas', async (req, res) => {
+    try {
+        const zonas = await logica.getAllZonas();
+        res.json(zonas);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to load zonas' });
+    }
+});
+
+// POST /api/sendGoal -> Envia robot a un destino
+router.post('/sendGoal', async (req, res) => {
+    const { zonaId } = req.body;
+
+    try {
+        const zona = await logica.getZonaById(zonaId);
+
+        if (!zona) {
+            return res.status(404).json({ error: 'Zona not found' });
+        }
+
+        rosClient.sendGoal(zona.PosX, zona.PosY);
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to send goal' });
+    }
+});
+
 
 // GET /api/destinos -> Consulta la tabla Zona y organiza por categoría
 router.get('/destinos', async (req, res) => {

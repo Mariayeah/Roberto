@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const apiRoutes = require('./api');
+const rosClient = require('./rosClient');
+
+rosClient.init();
 
 const app = express();
 const PORT = 3000;
