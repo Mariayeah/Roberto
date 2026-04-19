@@ -1,6 +1,14 @@
-// ============================================
-// CONTROL.JS - CON IDs CORRECTOS DEL HTML
-// ============================================
+/*
+Joystick: gestiona el control manual del robot con los botones de dirección y parada, 
+traduciendo cada acción en valores de velocidad lineal y angular que se publican en ROS. 
+También actualiza la animación del indicador central para reflejar el estado actual del movimiento.
+
+Tarjetas: muestran información en tiempo real de motores, sensores y batería usando los 
+datos suscritos de ROS. Cada tarjeta abre un modal con el último estado recibido, 
+incluyendo odometría, velocidades de juntas y nivel de carga.
+
+Autor: Maria Algora
+*/
 
 let controlRos = null;
 let controlConnected = false;
@@ -8,16 +16,22 @@ let currentLinear = 0;
 let currentAngular = 0;
 let publishInterval = null;
 
+
 // Variables para UI
 let lastOdomData = { x: '---', y: '---', orient: '---', timestamp: null };
 let lastJointData = { names: [], positions: [], velocities: [], efforts: [] };
 let lastBatteryData = { percentage: 87, voltage: 0, current: 0, temperature: 0, isCharging: false };
 let lastDiagnosticData = { systemStatus: "OK", warnings: [], errors: [] };
 
+
 // ============================================
 // FUNCIÓN DE CONEXIÓN
 // ============================================
 
+
+/**
+ * Conecta con el servidor ROS Bridge y activa publicaciones y suscripciones.
+ */
 function connectControlROS() {
     const wsUrlInput = document.getElementById('ws_url');
     let address = wsUrlInput ? `ws://${wsUrlInput.value.trim()}` : 'ws://127.0.0.1:9090';
@@ -41,13 +55,13 @@ function connectControlROS() {
     }
     if (btnConnect) btnConnect.disabled = true;
     
-    console.log('🔌 Intentando conectar a:', address);
+    console.log('Intentando conectar a:', address);
     
     try {
         controlRos = new ROSLIB.Ros({ url: address });
         
         controlRos.on('connection', () => {
-            console.log('✅ Conectado a ROS Bridge');
+            console.log('Conectado a ROS Bridge');
             if (statusElement) {
                 statusElement.textContent = 'Conectado';
                 statusElement.style.color = '#27ae60';
@@ -69,7 +83,7 @@ function connectControlROS() {
         });
         
         controlRos.on('error', (error) => {
-            console.error('❌ Error ROS:', error);
+            console.error('Error ROS:', error);
             if (statusElement) {
                 statusElement.textContent = 'Error de conexión';
                 statusElement.style.color = '#e74c3c';
@@ -80,7 +94,7 @@ function connectControlROS() {
         });
         
         controlRos.on('close', () => {
-            console.log('🔌 Desconectado de ROS');
+            console.log('Desconectado de ROS');
             if (statusElement) {
                 statusElement.textContent = 'Desconectado';
                 statusElement.style.color = '#e74c3c';
@@ -95,7 +109,7 @@ function connectControlROS() {
         });
         
     } catch(e) {
-        console.error('❌ Error al crear conexión:', e);
+        console.error('Error al crear conexión:', e);
         if (statusElement) {
             statusElement.textContent = 'Error';
             statusElement.style.color = '#e74c3c';
@@ -105,9 +119,13 @@ function connectControlROS() {
     }
 }
 
+
+/**
+ * Desconecta del servidor ROS Bridge y detiene la publicación de velocidad.
+ */
 function disconnectControlROS() {
     if (controlRos && controlConnected) {
-        console.log('🔌 Desconectando...');
+        console.log('Desconectando...');
         setMovement("parar");
         
         setTimeout(() => {
@@ -125,14 +143,19 @@ function disconnectControlROS() {
     }
 }
 
+
 // ============================================
 // PUBLICACIÓN DE VELOCIDAD
 // ============================================
 
+
+/**
+ * Inicia la publicación periódica del mensaje /cmd_vel.
+ */
 function startPublishing() {
     if (publishInterval) clearInterval(publishInterval);
     
-    console.log('📡 Iniciando publicación en /cmd_vel');
+    console.log('Iniciando publicación en /cmd_vel');
     
     publishInterval = setInterval(() => {
         if (!controlRos || !controlConnected) return;
@@ -178,23 +201,33 @@ function startPublishing() {
     }, 100);
 }
 
+
+/**
+ * Detiene la publicación periódica.
+ */
 function stopPublishing() {
     if (publishInterval) {
         clearInterval(publishInterval);
         publishInterval = null;
-        console.log('⏹️ Publicación detenida');
+        console.log('Publicación detenida');
     }
 }
+
 
 // ============================================
 // CONTROL DE MOVIMIENTO
 // ============================================
 
+
+/**
+ * Define el movimiento del robot según el comando recibido.
+ * @param {string} moveCommand Comando de movimiento.
+ */
 function setMovement(moveCommand) {
     if (!controlRos || !controlConnected) {
         const statusElement = document.getElementById('status');
         if (statusElement) statusElement.textContent = 'Conecta primero';
-        console.warn('⚠️ No hay conexión ROS');
+        console.warn('No hay conexión ROS');
         return;
     }
     
@@ -223,16 +256,22 @@ function setMovement(moveCommand) {
             return;
     }
     
-    console.log(`🚗 Movimiento: ${moveCommand} | Linear: ${currentLinear} | Angular: ${currentAngular}`);
+    console.log(`Movimiento: ${moveCommand} | Linear: ${currentLinear} | Angular: ${currentAngular}`);
     
     // Animar el joystick
     animateJoystick(moveCommand);
 }
 
+
 // ============================================
 // ANIMACIÓN DEL JOYSTICK
 // ============================================
 
+
+/**
+ * Anima el indicador visual del joystick según la dirección.
+ * @param {string} direction Dirección del movimiento.
+ */
 function animateJoystick(direction) {
     const centerDot = document.querySelector('.center-dot');
     if (!centerDot) return;
@@ -260,10 +299,15 @@ function animateJoystick(direction) {
     }
 }
 
+
 // ============================================
 // SUSCRIPCIONES
 // ============================================
 
+
+/**
+ * Se suscribe al tema /odom y guarda la última odometría recibida.
+ */
 function subscribeToOdom() {
     if (!controlRos || !controlConnected) return;
     
@@ -282,9 +326,13 @@ function subscribeToOdom() {
         };
     });
     
-    console.log('📡 Suscrito a /odom');
+    console.log('Suscrito a /odom');
 }
 
+
+/**
+ * Se suscribe al tema /joint_states y actualiza el estado de motores.
+ */
 function subscribeToJointStates() {
     if (!controlRos || !controlConnected) return;
     
@@ -314,9 +362,13 @@ function subscribeToJointStates() {
         }
     });
     
-    console.log('📡 Suscrito a /joint_states');
+    console.log('Suscrito a /joint_states');
 }
 
+
+/**
+ * Se suscribe al tema /battery_state y actualiza el porcentaje de batería.
+ */
 function subscribeToBatteryState() {
     if (!controlRos || !controlConnected) return;
     
@@ -337,9 +389,13 @@ function subscribeToBatteryState() {
         }
     });
     
-    console.log('📡 Suscrito a /battery_state');
+    console.log('Suscrito a /battery_state');
 }
 
+
+/**
+ * Se suscribe al tema /diagnostics y actualiza el estado de sensores.
+ */
 function subscribeToDiagnostics() {
     if (!controlRos || !controlConnected) return;
     
@@ -367,13 +423,18 @@ function subscribeToDiagnostics() {
         }
     });
     
-    console.log('📡 Suscrito a /diagnostics');
+    console.log('Suscrito a /diagnostics');
 }
+
 
 // ============================================
 // FUNCIONES DE INFO CARDS
 // ============================================
 
+
+/**
+ * Muestra la tarjeta de información de motores.
+ */
 function showMotoresInfo() {
     const cardTitle = document.getElementById('infoCardTitle');
     const cardBody = document.getElementById('infoCardBody');
@@ -393,27 +454,66 @@ function showMotoresInfo() {
     if (cardBody) {
         cardBody.innerHTML = `
             <p><strong>Sistema de propulsores y actuadores</strong></p>
-            <div class="info-topic">Robot equipado con motores DC controlados electrónicamente.</div>
+            <div class="info-topic">
+                El robot esta equipado con motores de corriente continua controlados electronicamente.
+            </div>
+            
             ${motorDetails}
+            
+            <p><strong>Tipos de movimiento disponibles</strong></p>
+            <div class="info-topic">
+                <strong>Avance y retroceso</strong> - Desplazamiento lineal a velocidad controlada<br>
+                <strong>Giros sobre el eje</strong> - Rotacion en el punto central del robot<br>
+                <strong>Movimientos circulares</strong> - Combinacion de avance y giro simultaneo
+            </div>
+            
+            <p><strong>Caracteristicas de los actuadores</strong></p>
+            <div class="info-topic">
+                Los motores responden a comandos de velocidad con una latencia minima.<br>
+                El sistema mantiene el movimiento de forma continua hasta recibir una nueva orden.
+            </div>
         `;
+        
+        document.getElementById('infoCard').style.display = 'flex';
     }
     
     document.getElementById('infoCard').style.display = 'flex';
 }
 
+
+/**
+ * Muestra la tarjeta de información de sensores.
+ */
 function showSensoresInfo() {
     const cardTitle = document.getElementById('infoCardTitle');
     const cardBody = document.getElementById('infoCardBody');
     
     if (cardTitle) cardTitle.innerHTML = 'Sensores';
     if (cardBody) {
-        cardBody.innerHTML = `
-            <p><strong>Sistema de localización (Odometría)</strong></p>
+         cardBody.innerHTML = `
+            <p><strong>Sistema de localizacion y posicionamiento</strong></p>
             <div class="info-topic">
-                Coordenada X: <strong>${lastOdomData.x}</strong> m<br>
-                Coordenada Y: <strong>${lastOdomData.y}</strong> m<br>
-                Orientación: <strong>${lastOdomData.orient}</strong> rad<br>
-                Última actualización: ${lastOdomData.timestamp || '---'}
+                El robot utiliza sensores de odometria para conocer su posicion exacta en el espacio.
+            </div>
+            
+            <p><strong>Posicion actual del robot</strong></p>
+            <div class="info-topic">
+                Coordenada X: <strong>${lastOdomData.x}</strong> metros<br>
+                Coordenada Y: <strong>${lastOdomData.y}</strong> metros<br>
+                Orientacion: <strong>${lastOdomData.orient}</strong> radianes<br>
+                Ultima actualizacion: ${lastOdomData.timestamp || '---'}
+            </div>
+            
+            <p><strong>Estado de los sensores</strong></p>
+            <div class="info-topic">
+                <strong>Diagnostico general:</strong> ${lastDiagnosticData.errors.length > 0 ? 'ATENCION - Errores detectados' : (lastDiagnosticData.warnings.length > 0 ? 'ATENCION - Advertencias' : 'OK - Todos los sistemas operativos')}<br>
+                ${lastDiagnosticData.errors.length > 0 ? '<strong>Errores:</strong> ' + lastDiagnosticData.errors.join(', ') + '<br>' : ''}
+                ${lastDiagnosticData.warnings.length > 0 ? '<strong>Advertencias:</strong> ' + lastDiagnosticData.warnings.join(', ') : ''}
+            </div>
+            
+            <p><strong>Precision del sistema</strong></p>
+            <div class="info-topic">
+                La odometria tiene una precision centimetrica en condiciones normales de operacion.
             </div>
         `;
     }
@@ -421,6 +521,10 @@ function showSensoresInfo() {
     document.getElementById('infoCard').style.display = 'flex';
 }
 
+
+/**
+ * Muestra la tarjeta de información de batería.
+ */
 function showBateriaInfo() {
     const cardTitle = document.getElementById('infoCardTitle');
     const cardBody = document.getElementById('infoCardBody');
@@ -432,11 +536,23 @@ function showBateriaInfo() {
     if (cardTitle) cardTitle.innerHTML = 'Batería';
     if (cardBody) {
         cardBody.innerHTML = `
-            <p><strong>Sistema de alimentación</strong></p>
+            <p><strong>Sistema de alimentacion y bateria</strong></p>
+            <div class="info-topic">
+                El robot utiliza una bateria recargable de litio que alimenta todos los sistemas.
+            </div>
+            
+            <p><strong>Estado actual de la bateria</strong></p>
             <div class="info-topic">
                 Carga: <strong>${lastBatteryData.percentage}%</strong><br>
-                Voltaje: <strong>${lastBatteryData.voltage.toFixed(1)}</strong> V<br>
+                Voltaje: <strong>${lastBatteryData.voltage.toFixed(1)}</strong> voltios<br>
+                Corriente: <strong>${lastBatteryData.current.toFixed(1)}</strong> amperios ${lastBatteryData.isCharging ? '(cargando)' : '(descargando)'}<br>
+                Temperatura: <strong>${lastBatteryData.temperature.toFixed(0)}</strong> grados Celsius<br>
                 Estado: <strong>${estadoCarga}</strong>
+            </div>
+
+            <p><strong>Recomendaciones</strong></p>
+            <div class="info-topic">
+                ${lastBatteryData.percentage < 20 ? 'Bateria baja. Conecte el robot al cargador lo antes posible.' : 'Bateria en nivel operativo normal.'}
             </div>
         `;
     }
@@ -444,23 +560,32 @@ function showBateriaInfo() {
     document.getElementById('infoCard').style.display = 'flex';
 }
 
+
+/**
+ * Cierra la tarjeta de información.
+ */
 function closeInfoCard() {
     const card = document.getElementById('infoCard');
     if (card) card.style.display = 'none';
 }
 
+
 // ============================================
 // INICIALIZACIÓN DE BOTONES
 // ============================================
 
+
+/**
+ * Inicializa los eventos de botones y tarjetas de información.
+ */
 function initializeControlButtons() {
-    console.log('🎮 Inicializando botones de control...');
+    console.log('Inicializando botones de control...');
     
     // Botones de conexión
     const btnConnect = document.getElementById('btn_connect');
     const btnDisconnect = document.getElementById('btn_disconnect');
     
-    // Botones de movimiento (IDs CORRECTOS del HTML)
+    // Botones de movimiento (IDs del HTML)
     const btnForward = document.getElementById('btn_forward');
     const btnBack = document.getElementById('btn_back');
     const btnLeft = document.getElementById('btn_left');
@@ -476,7 +601,7 @@ function initializeControlButtons() {
     if (btnConnect) {
         btnConnect.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('🖱️ Botón Conectar clickeado');
+            console.log('Botón Conectar clickeado');
             connectControlROS();
         });
     }
@@ -484,7 +609,7 @@ function initializeControlButtons() {
     if (btnDisconnect) {
         btnDisconnect.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('🖱️ Botón Desconectar clickeado');
+            console.log('Botón Desconectar clickeado');
             disconnectControlROS();
         });
     }
@@ -507,44 +632,47 @@ function initializeControlButtons() {
         }
     });
     
-    console.log('✅ Botones inicializados correctamente');
-    console.log('📋 IDs encontrados:');
-    console.log('   - btn_connect:', btnConnect ? '✅' : '❌');
-    console.log('   - btn_disconnect:', btnDisconnect ? '✅' : '❌');
-    console.log('   - btn_forward:', btnForward ? '✅' : '❌');
-    console.log('   - btn_back:', btnBack ? '✅' : '❌');
-    console.log('   - btn_left:', btnLeft ? '✅' : '❌');
-    console.log('   - btn_right:', btnRight ? '✅' : '❌');
-    console.log('   - btn_stop:', btnStop ? '✅' : '❌');
+    console.log('Botones inicializados correctamente');
+    console.log('IDs encontrados:');
+    console.log('   - btn_connect:', btnConnect ? 'OK' : 'NO');
+    console.log('   - btn_disconnect:', btnDisconnect ? 'OK' : 'NO');
+    console.log('   - btn_forward:', btnForward ? 'OK' : 'NO');
+    console.log('   - btn_back:', btnBack ? 'OK' : 'NO');
+    console.log('   - btn_left:', btnLeft ? 'OK' : 'NO');
+    console.log('   - btn_right:', btnRight ? 'OK' : 'NO');
+    console.log('   - btn_stop:', btnStop ? 'OK' : 'NO');
 }
+
 
 // ============================================
 // INICIAR CUANDO EL DOM ESTÉ LISTO
 // ============================================
 
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('🚀 DOM Cargado - Inicializando control');
+        console.log('DOM cargado - Inicializando control');
         
         if (typeof ROSLIB === 'undefined') {
-            console.error('❌ ROSLIB no está cargado');
+            console.error('ROSLIB no está cargado');
             return;
         }
         
         initializeControlButtons();
-        console.log('✅ Sistema de control listo');
+        console.log('Sistema de control listo');
     });
 } else {
     // DOM ya está cargado
-    console.log('🚀 DOM ya cargado - Inicializando control');
+    console.log('DOM ya cargado - Inicializando control');
     
     if (typeof ROSLIB === 'undefined') {
-        console.error('❌ ROSLIB no está cargado');
+        console.error('ROSLIB no está cargado');
     } else {
         initializeControlButtons();
-        console.log('✅ Sistema de control listo');
+        console.log('Sistema de control listo');
     }
 }
+
 
 // Exponer funciones globalmente
 window.closeInfoCard = closeInfoCard;

@@ -1,7 +1,6 @@
 // main.js
 import { initROS } from './ros.js';
 import { initCamera } from './camera.js';
-import { initControls } from './controls.js';
 import { initCage } from './cage.js';
 import { initOdom } from './odom.js';
 
@@ -13,7 +12,6 @@ const ros = initROS();
 // roslibjs es inteligente: si creas un Topic antes de conectar, 
 // se pondrá en cola y se activará en cuanto 'ros' emita 'connection'.
 initCamera(ros);
-initControls(ros);
 initCage(ros);
 initOdom(ros);
 

@@ -27,6 +27,6 @@ app.get('/', (req, res) => {
 
 // Configurar server para escuchar en 0.0.0.0 como especificado
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor Express Local ejecutándose en http://localhost:${PORT}`);
-    console.log(`📂 Sirviendo archivos estáticos desde frontend/`);
+    console.log(`Servidor Express Local ejecutándose en http://localhost:${PORT}`);
+    console.log(`Sirviendo archivos estáticos desde frontend/`);
 });
