@@ -88,7 +88,9 @@ body {
     font-weight: 600;
 }
 
-.status.online { color: #10b981; }
+.status.online {
+    color: #10b981;
+}
 
 /* --- Main Content Area --- */
 .main-content {
@@ -196,24 +198,110 @@ body {
     margin-bottom: 20px;
 }
 
-.progress-bar .fill {
-    background: var(--accent-blue);
+.progress-fill {
+    background: #2b7fff;
     height: 100%;
+    width: 0%;
+    transition: width 0.3s;
 }
 
-.systems-check {
+.systems-list {
     list-style: none;
-    padding: 0;
+    margin-top: 16px;
 }
 
-.systems-check li {
-    padding: 10px 0;
-    border-top: 1px solid #f3f4f6;
+.systems-list li {
     display: flex;
     justify-content: space-between;
+    padding: 12px 0;
+    border-top: 1px solid #f3f4f6;
+    font-size: 14px;
+    color: #364153;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.check { color: #10b981; font-weight: bold; }
+.systems-list li:hover {
+    background: #f9fafb;
+    padding-left: 8px;
+}
+
+.check-ok {
+    color: #10b981;
+    font-weight: 600;
+}
+
+/* --- Info Card Modal (POPUP) --- */
+.info-card {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-card-content {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.info-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.info-card-header h3 {
+    font-size: 20px;
+    color: #101828;
+    margin: 0;
+}
+
+.info-card-close {
+    cursor: pointer;
+    font-size: 28px;
+    color: #6a7282;
+    line-height: 1;
+}
+
+.info-card-close:hover {
+    color: #ef4444;
+}
+
+.info-card-body {
+    line-height: 1.6;
+}
+
+.info-topic {
+    background: #f3f4f6;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 12px 0;
+}
+
+.info-data {
+    font-family: monospace;
+    font-size: 14px;
+    background: #f9fafb;
+    padding: 8px;
+    border-radius: 8px;
+    margin: 5px 0;
+}
 
 /* --- Control Panel (Right) --- */
 .control-panel {
@@ -225,14 +313,18 @@ body {
 }
 
 .joystick-container {
-    display: grid;
-    grid-template-areas: 
-        ". up ."
-        "left center right"
-        ". down .";
-    gap: 10px;
-    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     margin: 40px 0;
+}
+
+.joy-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
 }
 
 .joy-btn {
@@ -244,29 +336,89 @@ body {
     font-size: 1.2rem;
     cursor: pointer;
     transition: 0.2s;
-}
-
-.joy-btn:active { background: #e2e8f0; transform: scale(0.95); }
-
-.up { grid-area: up; }
-.down { grid-area: down; }
-.left { grid-area: left; }
-.right { grid-area: right; }
-
-.center-dot {
-    width: 55px;
-    height: 55px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.center-dot::after {
+.joy-btn i {
+    font-size: 24px;
+    color: #2b7fff;
+}
+
+.joy-btn:active {
+    background: #e2e8f0;
+    transform: scale(0.95);
+}
+
+/* Centro del joystick */
+.center-dot {
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* El punto azul dentro del centro */
+.center-dot::before {
     content: '';
-    width: 12px;
-    height: 12px;
-    background: var(--accent-blue);
+    width: 16px;
+    height: 16px;
+    background: #2b7fff;
     border-radius: 50%;
+    transition: all 0.15s ease-out;
+    display: block;
+}
+
+/* Animación del punto según dirección */
+.center-dot.up::before {
+    transform: translateY(-12px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.down::before {
+    transform: translateY(12px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.left::before {
+    transform: translateX(-12px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.right::before {
+    transform: translateX(12px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.up-left::before {
+    transform: translate(-10px, -10px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.up-right::before {
+    transform: translate(10px, -10px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.down-left::before {
+    transform: translate(-10px, 10px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.down-right::before {
+    transform: translate(10px, 10px);
+    box-shadow: 0 0 10px rgba(43, 127, 255, 0.5);
+}
+
+.center-dot.idle::before {
+    transform: translate(0, 0);
+    box-shadow: none;
 }
 
 .stop-btn {
@@ -296,5 +448,11 @@ body {
     border-radius: 50%;
     display: inline-block;
 }
-.dot.green { background: #10b981; }
-.dot.blue { background: var(--accent-blue); }
+
+.dot.green {
+    background: #10b981;
+}
+
+.dot.blue {
+    background: var(--accent-blue);
+}
