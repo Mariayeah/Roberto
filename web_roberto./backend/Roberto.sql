@@ -155,7 +155,7 @@ CREATE TABLE `Tecnico` (
   `TecnicoID` int(11) NOT NULL,
   `Nombre` varchar(100) NOT NULL,
   `Email` varchar(100) NOT NULL,
-  `Contrasena` varchar(20) NOT NULL
+  `Contrasena` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --

@@ -114,4 +114,76 @@ router.post('/robot/status', async (req, res) => {
     }
 });
 
+// POST /api/login -> Autenticación de técnicos
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: 'Email y contraseña son obligatorios'
+        });
+    }
+
+    try {
+        const result = await logica.validarCredenciales(email, password);
+
+        if (!result.success) {
+            return res.status(401).json(result);
+        }
+
+        console.log(`Login correcto: ${email}`);
+
+        req.session.usuario = {
+            id: result.usuario.id,
+            email: result.usuario.email,
+            nombre: result.usuario.nombre || null
+        };
+
+
+        res.json({
+            success: true,
+            message: 'Login correcto',
+            usuario: req.session.usuario
+        });
+
+    } catch (error) {
+        console.error('Error en login:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+});
+
+router.get('/dashboard', (req, res) => {
+    if (!req.session.usuario) {
+        return res.status(401).json({
+            success: false,
+            message: 'No autorizado'
+        });
+    }
+
+    res.json({
+        success: true,
+        usuario: req.session.usuario
+    });
+});
+
+router.post('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: 'Error al cerrar sesión'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Sesión cerrada'
+        });
+    });
+});
+
 module.exports = router;

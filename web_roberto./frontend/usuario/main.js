@@ -76,6 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botón Técnico Oculto
     techBtn.addEventListener('click', () => {
-        window.location.href = '/tecnico/dashboard.html';
+        window.location.href = '/tecnico/login/login.html';
     });
 });

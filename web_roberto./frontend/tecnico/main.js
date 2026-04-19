@@ -230,3 +230,13 @@ async function loadZonas() {
 }
 
 loadZonas();
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const res = await fetch('/api/dashboard', {
+        credentials: 'include'
+    });
+
+    if (!res.ok) {
+        window.location.href = '/tecnico/login/login.html';
+    }
+});
