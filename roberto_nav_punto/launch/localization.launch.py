@@ -91,6 +91,15 @@ def generate_launch_description():
             parameters=[{'use_sim_time': True}]
         ),
 
+        # --- NODO NUEVO: Servidor de Visión (Cámara para Dashboard) ---
+        # Este nodo levanta Flask en el puerto 5000 enviando el video web
+        Node(
+            package='roberto_nav_punto',
+            executable='vision_server', 
+            name='vision_server_node',
+            output='screen'
+        ),
+
         # RViz (Visualizacion opcional)
         # Solo se lanza si el argumento use_rviz es True. 
         # Carga la configuracion personalizada desde el directorio rviz/

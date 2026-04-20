@@ -237,6 +237,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     if (!res.ok) {
-        window.location.href = '/tecnico/login/login.html';
+        //window.location.href = '/tecnico/login/login.html';
     }
 });
