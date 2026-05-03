@@ -101,6 +101,49 @@ router.post('/navigate', async (req, res) => {
     console.log(`[API Navigation] Navegación iniciada hacia destino ID: ${destination_id}`);
     res.json({ success: true, message: 'Navegación simulada localmente (Robot avisado).' });
 });
+// POST /api/valoracion -> Guarda feedback del usuario
+router.post('/valoracion', async (req, res) => {
+    try {
+        const {
+            robotId,
+            zonaActualId,
+            zonaDestinoId,
+            duracion,
+            valoracion,
+            comentario
+        } = req.body;
+
+        // Basic validation
+        if (!robotId || !zonaActualId || !zonaDestinoId || !duracion) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
+            });
+        }
+
+        const id = await logica.insertInteraccion({
+            robotId,
+            zonaActualId,
+            zonaDestinoId,
+            duracion,
+            valoracion,
+            comentario
+        });
+
+        res.json({
+            success: true,
+            message: 'Valoración guardada',
+            id
+        });
+
+    } catch (error) {
+        console.error('[API] Error guardando valoración:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Database error'
+        });
+    }
+});
 
 // POST /api/robot/status -> Registra la conectividad del robot
 router.post('/robot/status', async (req, res) => {

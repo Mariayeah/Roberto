@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: '1234',
+    password: '',
     database: 'Roberto',
     port: 3306,
     waitForConnections: true,
@@ -179,6 +179,33 @@ async function validarCredenciales(email, password) {
         return { success: false, message: 'Error interno del servidor' };
     }
 }
+async function insertInteraccion(data) {
+    const {
+        robotId,
+        zonaActualId,
+        zonaDestinoId,
+        duracion,
+        valoracion,
+        comentario
+    } = data;
+
+    const query = `
+        INSERT INTO Interaccion
+        (RobotID, ZonaActualID, ZonaDestinoID, FechaHora, Duracion, Valoracion, Comentario)
+        VALUES (?, ?, ?, NOW(), ?, ?, ?)
+    `;
+
+    const [result] = await pool.query(query, [
+        robotId,
+        zonaActualId,
+        zonaDestinoId,
+        duracion,
+        valoracion,
+        comentario
+    ]);
+
+    return result.insertId;
+}
 
 module.exports = {
     pool,
@@ -189,5 +216,6 @@ module.exports = {
     insertPosition,
     getZonaById,
     getAllZonas,
-    validarCredenciales
+    validarCredenciales,
+    insertInteraccion
 };
