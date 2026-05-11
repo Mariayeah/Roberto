@@ -75,7 +75,16 @@
                             style="width:100%; height:100%; object-fit:cover; display:block;">
                     </div>
                 </div>
-
+            
+            <div class="card history-preview-card">
+    <div class="card-header">
+        <h3>Historial reciente</h3>
+        <button class="view-all-link" onclick="openHistoryModal()">Ver todo</button>
+    </div>
+    <div id="history-preview-list">
+        <p style="color:gray; font-size: 0.8rem; padding: 10px;">Cargando historial...</p>
+    </div>
+</div>
 
 
                 <!-- Sección de mapa -->
@@ -188,7 +197,79 @@
             </div>
         </div>
     </div>
+<div id="historyModal" class="modal-full-overlay">
+    <div class="modal-full-content">
+        <div class="modal-full-header">
+            <h2>Historial completo de interacciones</h2>
+            <span class="modal-close-icon" onclick="closeHistoryModal()">&times;</span>
+        </div>
+        
+<div class="modal-full-body">
+    <div class="table-filters" style="display: flex; gap: 8px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+<div class="filter-group">
+    <i class="ph ph-calendar-blank"></i>
+    <input type="date" id="filter-date" class="date-filter-input">
+</div>
+        <div class="filter-group">
+            <i class="ph ph-robot"></i>
+            <select id="filter-robot"><option value="">Robot</option></select>
+        </div>
+        <div class="filter-group">
+            <i class="ph ph-map-pin"></i>
+            <select id="filter-zona"><option value="">Zona actual</option></select>
+        </div>
+        <div class="filter-group">
+            <i class="ph ph-navigation-arrow"></i>
+            <select id="filter-destino"><option value="">Destino</option></select>
+        </div>
+        <div class="filter-group">
+            <i class="ph ph-star"></i>
+       
+        <select id="filter-valoracion">
+    <option value="">Valoración</option>
+    <option value="5">5 Estrellas</option>
+    <option value="4">4 Estrellas</option>
+    <option value="3">3 Estrellas</option>
+    <option value="2">2 Estrellas</option>
+    <option value="1">1 Estrella</option>
+</select>
+ </div>
+<button class="btn-secondary-outline" onclick="clearAllFilters()">
+    <i class="ph ph-arrows-counter-clockwise"></i> Limpiar filtros
+</button>
+        
+<button class="export-csv-btn" onclick="exportToCSV()" style="margin-left: auto; background-color: #1a1f36;">
+    <i class="ph ph-download-simple"></i> Exportar CSV
+</button>
+    </div>
 
+    <div class="table-wrapper" style="border: none;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Interacción ID</th>
+                    <th>Robot</th>
+                    <th>Zona actual</th>
+                    <th>Destino</th>
+                    <th>Fecha y hora <i class="ph ph-arrow-down" style="font-size: 0.7rem;"></i></th>
+                    <th>Duración</th>
+                    <th>Valoración</th>
+                    <th>Comentario</th>
+                </tr>
+            </thead>
+            <tbody id="full-history-table-body">
+                </tbody>
+        </table>
+    </div>
+
+<div class="table-footer">
+    <span id="table-stats">Cargando interacciones...</span>
+    <div class="pagination-mock" id="pagination-controls">
+        </div>
+</div>
+</div>
+    </div>
+</div>
 
     <script src="main.js"></script>
     <script type="module" src="camara/main.js"></script>

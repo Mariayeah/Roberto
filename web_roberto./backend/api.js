@@ -156,7 +156,41 @@ router.post('/robot/status', async (req, res) => {
         res.status(500).json({ success: false, message: 'Database logging error' });
     }
 });
+// GET /api/historial -> Retorna el historial completo con nombres
+router.get('/historial', async (req, res) => {
+    try {
+        const historial = await logica.getInteracciones();
+        res.json(historial);
+    } catch (err) {
+        console.error('[API] Error obteniendo historial:', err);
+        res.status(500).json({ success: false, error: 'Failed to load history' });
+    }
+});
+// --- RUTAS PARA FILTROS DEL HISTORIAL ---
 
+// GET /api/robots/names -> Retorna solo los nombres de los robots
+router.get('/robots/names', async (req, res) => {
+    try {
+        const robots = await logica.getRobotNames();
+        // Mapeamos para enviar un array simple de strings: ["Roberto1", "Roberto2"]
+        const names = robots.map(r => r.Nombre);
+        res.json(names);
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error al obtener nombres de robots' });
+    }
+});
+
+// GET /api/zonas/names -> Retorna solo los nombres de las zonas
+router.get('/zonas/names', async (req, res) => {
+    try {
+        const zonas = await logica.getZonaNames();
+        // Enviamos ["Puerta 12", "Restaurante B", ...]
+        const names = zonas.map(z => z.Nombre);
+        res.json(names);
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error al obtener nombres de zonas' });
+    }
+});
 // POST /api/login -> Autenticación de técnicos
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
