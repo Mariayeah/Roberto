@@ -396,4 +396,34 @@ router.post('/logout', (req, res) => {
     });
 });
 
+/**
+ * @route GET /api/eventos
+ * @description Obtiene todas las incidencias (eventos) del sistema.
+ */
+router.get('/eventos', async (req, res) => {
+    try {
+        const eventos = await logica.getEventosConEstado();
+        res.json(eventos);
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al obtener eventos' });
+    }
+});
+
+/**
+ * @route POST /api/eventos/resolver
+ * @description Registra una acción de mantenimiento y cierra la incidencia.
+ */
+router.post('/eventos/resolver', async (req, res) => {
+    const { eventoId, accion } = req.body;
+    const tecnicoId = req.session.usuario ? req.session.usuario.id : 1; 
+
+    try {
+        await logica.resolverEvento(eventoId, tecnicoId, accion);
+        res.json({ success: true, message: 'Incidencia resuelta' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error al resolver' });
+    }
+});
+
 module.exports = router;
