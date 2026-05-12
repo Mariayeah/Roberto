@@ -7,12 +7,28 @@ import cv2
 import os
 from rclpy.qos import qos_profile_sensor_data
 
+"""
+Autor: Mery
+Sprint : 3
+Descripción: Nodo de detección de personas utilizando OpenCV y Haar Cascades.
+"""
+
 class PersonDetector(Node):
+    """
+    Nodo de ROS 2 para la detección de personas en tiempo real utilizando OpenCV.
+    
+    Este nodo se suscribe a un flujo de imágenes, utiliza un clasificador Haar Cascade
+    para identificar figuras humanas y publica un booleano indicando la presencia 
+    de una persona.
+    """
     def __init__(self):
+        """
+        Inicializa el nodo, configura suscriptores, publicadores y carga el modelo Haar Cascade.
+        """
         super().__init__('person_detector')
         self.bridge = CvBridge()
 
-        # Subscriber using Jazzy-compatible sensor data QoS
+        
         self.subscription = self.create_subscription(
             Image,
             '/camera/image_raw',
@@ -20,7 +36,7 @@ class PersonDetector(Node):
             qos_profile_sensor_data
         )
 
-        # Publisher for the robot to adapt its behavior
+        # Publisher 
         self.publisher = self.create_publisher(Bool, '/person_detected', 10)
 
         # Absolute path for ROS2 Jazzy / Ubuntu 24.04[cite: 1]
@@ -38,6 +54,15 @@ class PersonDetector(Node):
             self.get_logger().info(f"Classifier loaded from: {cascade_path}")
 
     def image_callback(self, msg):
+        """
+        Procesa cada frame recibido de la cámara.
+        
+        Convierte el mensaje de ROS a formato OpenCV, realiza la detección en escala 
+        de grises y visualiza los resultados en una ventana local.
+
+        Args:
+            msg (sensor_msgs.msg.Image): Mensaje de imagen entrante desde la cámara.
+        """
         try:
             # Convert ROS2 Image to OpenCV (bgr8)[cite: 2]
             frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
@@ -67,6 +92,9 @@ class PersonDetector(Node):
         cv2.waitKey(1)
 
 def main(args=None):
+    """
+    Punto de entrada principal para ejecutar el nodo PersonDetector.
+    """
     rclpy.init(args=args)
     node = PersonDetector()
     try:

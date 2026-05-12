@@ -1,3 +1,12 @@
+/**
+ * @file rosClient.js
+ * @description Cliente de ROS 2 para el backend del proyecto "Roberto".
+ * Gestiona la conexión con el ROS Bridge, escucha la localización (AMCL) 
+ * y publica objetivos de navegación (Goals). Incluye lógica de filtrado
+ * para la persistencia de telemetría en la base de datos.
+ * @authors Maria, Mery, Chris
+ * @version 1.0.0
+ */
 const ROSLIB = require('roslib');
 const logica = require('./logica');
 
@@ -7,7 +16,10 @@ let lastInsertTime = 0;
 let currentGoal = null;
 let rosInstance = null;
 let goalTopic = null;
-
+/**
+ * Inicializa la conexión con ROS Bridge y configura los suscriptores y publicadores.
+ * Se conecta al puerto 9090 por defecto.
+ */
 function init() {
     const ros = new ROSLIB.Ros({
         url: 'ws://127.0.0.1:9090'
@@ -26,9 +38,10 @@ function init() {
         console.log('⚠️ Conexión cerrada con ROS Bridge');
     });
 
-    // ---------------------------------------------------------
-    // 1. POSE LISTENER (Localization)
-    // ---------------------------------------------------------
+    /**
+     * Callback para el tópico /amcl_pose.
+     * Actualiza la posición en tiempo real y gestiona la persistencia en DB.
+     */
     const poseListener = new ROSLIB.Topic({
         ros: ros,
         name: '/amcl_pose',
@@ -56,14 +69,12 @@ function init() {
         );
 
         /**
-         * DB SAVING LOGIC:
-         * 1. Check if at least 1000ms (1 second) has passed.
-         * 2. Check if the robot has moved more than 0.05 meters (5cm).
-         * This prevents the database from filling with thousands of identical "0,0" entries.
+         * LÓGICA DE PERSISTENCIA (Smart Logging):
+         * Solo guardamos en la base de datos si:
+         * 1. Han pasado al menos 500ms (evita saturar el disco).
+         * 2. El robot se ha movido más de 2cm (evita drift y redundancia).
          */
-        // 500ms (twice a second) and 2cm (0.02)
-// This is fast enough to feel "live" but slow enough to stay clean.
-if (now - lastInsertTime >= 500 && distMoved > 0.02) {
+    if (now - lastInsertTime >= 500 && distMoved > 0.02) {
     logica.insertPosition(1, x, y); 
     lastInsertTime = now;
     lastInsertedPos = { x, y };
@@ -79,15 +90,29 @@ if (now - lastInsertTime >= 500 && distMoved > 0.02) {
         messageType: 'geometry_msgs/PoseStamped'
     });
 }
-
+/**
+ * Retorna la última posición almacenada en memoria del robot.
+ * @returns {object} Objeto con x, y y timestamp.
+ * @author Mery
+ */
 function getLatestPosition() {
     return latestPosition;
 }
 
+/**
+ * Retorna el objetivo de navegación actual.
+ * @returns {object|null}
+ * @author Mery
+ */
 function getCurrentGoal() {
     return currentGoal;
 }
-
+/**
+ * Envía una nueva meta de navegación al robot.
+ * @author Mery
+ * @param {number} x - Coordenada X en el mapa de ROS.
+ * @param {number} y - Coordenada Y en el mapa de ROS.
+ */
 function sendGoal(x, y) {
     if (!rosInstance || !goalTopic) {
         console.error("❌ Cannot send goal: ROS not connected");

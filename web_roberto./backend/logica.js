@@ -1,3 +1,13 @@
+/**
+ * @file logica.js
+ * @description Módulo de gestión de base de datos para el proyecto "Roberto".
+ * Este archivo centraliza todas las operaciones CRUD y la lógica de persistencia 
+ * utilizando MySQL y promesas. Incluye la gestión de telemetría, eventos de sistema, 
+ * registro de misiones (interacciones) y validación segura de técnicos.
+ * * @authors Maria, Mery, Chris
+ * @version 1.0.0
+ * @project Roberto 
+ */
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 
@@ -12,7 +22,11 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-
+/**
+ * Verifica la conexión inicial con la base de datos Roberto.
+ * Imprime un mensaje en consola si la conexión es exitosa o el error correspondiente.
+ * @author Chris
+ */
 async function testConnection() {
     try {
         const connection = await pool.getConnection();
@@ -25,8 +39,9 @@ async function testConnection() {
 testConnection();
 
 /**
- * Obtiene todas las zonas.
- * @returns {Promise<Array>}
+ * Obtiene todas las zonas registradas en la base de datos.
+ * @author Mery
+ * @returns {Promise<Array>} Lista de objetos de zona.
  */
 async function getZonas() {
     const [rows] = await pool.query('SELECT * FROM Zona');
@@ -36,8 +51,9 @@ async function getZonas() {
 
 /**
  * Obtiene una zona por su ID.
- * @param {number} id ID de la zona
- * @returns {Promise<object|undefined>}
+ * @author Mery
+ * @param {number} id ID de la zona.
+ * @returns {Promise<object|undefined>} Objeto de la zona encontrada o undefined.
  */
 async function getZonaById(id) {
     const [rows] = await pool.query('SELECT * FROM Zona WHERE ZonaID = ?', [id]);
@@ -45,8 +61,9 @@ async function getZonaById(id) {
 }
 
 /**
- * Obtiene todas las zonas con coordenadas (para mapa).
- * @returns {Promise<Array>}
+ * Obtiene todas las zonas con coordenadas (para renderizado en mapa).
+ * @author Mery
+ * @returns {Promise<Array>} Lista de zonas con ID, Nombre y coordenadas PosX, PosY.
  */
 async function getAllZonas() {
     // Agregamos PosX y PosY a la consulta para que el mapa pueda dibujar el punto rojo
@@ -55,8 +72,9 @@ async function getAllZonas() {
 }
 
 /**
- * Obtiene todos los robots.
- * @returns {Promise<Array>}
+ * Obtiene todos los robots registrados en el sistema.
+ * @author Mery
+ * @returns {Promise<Array>} Lista de objetos de robot.
  */
 async function getRobots() {
     const [rows] = await pool.query('SELECT * FROM Robot');
@@ -64,10 +82,9 @@ async function getRobots() {
 }
 
 /**
- * Obtiene eventos del sistema.
- * Si se pasa robotId, filtra por ese robot.
- * @param {number} [robotId] ID opcional del robot
- * @returns {Promise<Array>}
+ * Obtiene los eventos recientes del sistema.
+ * @param {number} [robotId] ID opcional para filtrar eventos de un robot específico.
+ * @returns {Promise<Array>} Últimos 10 eventos ordenados por fecha.
  */
 async function getEventos(robotId) {
     let query = 'SELECT * FROM Evento';
@@ -179,6 +196,12 @@ async function validarCredenciales(email, password) {
         return { success: false, message: 'Error interno del servidor' };
     }
 }
+/**
+ * Registra una nueva interacción completada por el robot.
+ * @author Mery
+ * @param {object} data Objeto con IDs de robot/zonas, duración, valoración y comentarios.
+ * @returns {Promise<number>} ID de la interacción insertada.
+ */
 async function insertInteraccion(data) {
     const {
         robotId,

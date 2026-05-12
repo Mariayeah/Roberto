@@ -1,19 +1,39 @@
+/**
+ * @file api.js
+ * @description Definición de rutas de la API REST para el proyecto "Roberto".
+ * Este módulo actúa como intermediario entre la interfaz web, el sistema ROS 2 
+ * y la base de datos MySQL, gestionando la navegación, telemetría y autenticación.
+ * @authors Maria, Mery, Chris
+ * @version 1.0.0
+ */
 const express = require('express');
 const router = express.Router();
 const logica = require('./logica');
 const rosClient = require('./rosClient');
 
-// GET /api/position -> Retorna la ultima posicion en memoria (Real-Time)
+/**
+ * @route GET /api/position
+ * @description Obtiene la última posición conocida del robot (X, Y) desde la memoria de ROS.
+ * @author Mery
+ */
 router.get('/position', (req, res) => {
     res.json(rosClient.getLatestPosition());
 });
 
-// GET /api/goal -> Retorna el ultimo goal en memoria
+/**
+ * @route GET /api/goal
+ * @description Retorna las coordenadas del objetivo (Goal) actual al que se dirige el robot.
+ * @author Mery
+ */
 router.get('/goal', (req, res) => {
     res.json(rosClient.getCurrentGoal());
 });
 
-// GET /api/zonas -> Lista todas las zonas (id y nombre)
+/**
+ * @route GET /api/zonas
+ * @description Recupera la lista completa de zonas con sus IDs y nombres.
+ * @author Mery
+ */
 router.get('/zonas', async (req, res) => {
     try {
         const zonas = await logica.getAllZonas();
@@ -23,7 +43,12 @@ router.get('/zonas', async (req, res) => {
     }
 });
 
-// POST /api/sendGoal -> Envia robot a un destino
+/**
+ * @route POST /api/sendGoal
+ * @description Envía una orden de movimiento al robot basada en el ID de una zona.
+ * @param {number} zonaId - ID de la zona de destino.
+ * @author Mery
+ */
 router.post('/sendGoal', async (req, res) => {
     const { zonaId } = req.body;
 
@@ -43,7 +68,12 @@ router.post('/sendGoal', async (req, res) => {
 });
 
 
-// GET /api/destinos -> Consulta la tabla Zona y organiza por categoría
+/**
+ * @route GET /api/destinos
+ * @description Obtiene y organiza las zonas por categorías (puertas, comida, ocio, etc.)
+ * para ser mostradas en el menú de navegación del cliente.
+ * @author Chris
+ */
 router.get('/destinos', async (req, res) => {
     try {
         const zonas = await logica.getZonas();
@@ -84,7 +114,10 @@ router.get('/destinos', async (req, res) => {
     }
 });
 
-// GET /api/robots -> Retorna los robots conectados y sus estados
+/**
+ * @route GET /api/robots
+ * @description Obtiene el listado de robots y su estado actual de conexión.
+ */
 router.get('/robots', async (req, res) => {
     try {
         const robots = await logica.getRobots();
@@ -95,13 +128,21 @@ router.get('/robots', async (req, res) => {
     }
 });
 
-// POST /api/navigate -> Envia la orden
+/**
+ * @route POST /api/navigate
+ * @description Inicia un proceso de navegación simulada.
+ * @author Mery
+ */
 router.post('/navigate', async (req, res) => {
     const { destination_id } = req.body;
     console.log(`[API Navigation] Navegación iniciada hacia destino ID: ${destination_id}`);
     res.json({ success: true, message: 'Navegación simulada localmente (Robot avisado).' });
 });
-// POST /api/valoracion -> Guarda feedback del usuario
+/**
+ * @route POST /api/valoracion
+ * @description Registra el feedback de un usuario sobre una interacción con el robot.
+ * @author Mery
+ */
 router.post('/valoracion', async (req, res) => {
     try {
         const {
@@ -145,7 +186,11 @@ router.post('/valoracion', async (req, res) => {
     }
 });
 
-// POST /api/robot/status -> Registra la conectividad del robot
+/**
+ * @route POST /api/robot/status
+ * @description Registra eventos de conexión y desconexión del robot en la DB.
+ * @author Chris
+ */
 router.post('/robot/status', async (req, res) => {
     const { robotId, status } = req.body;
     try {
@@ -156,7 +201,11 @@ router.post('/robot/status', async (req, res) => {
         res.status(500).json({ success: false, message: 'Database logging error' });
     }
 });
-// GET /api/historial -> Retorna el historial completo con nombres
+/**
+ * @route GET /api/historial
+ * @description Obtiene el historial completo de interacciones detalladas.
+ * @author Mery
+ */
 router.get('/historial', async (req, res) => {
     try {
         const historial = await logica.getInteracciones();
@@ -166,9 +215,11 @@ router.get('/historial', async (req, res) => {
         res.status(500).json({ success: false, error: 'Failed to load history' });
     }
 });
-// --- RUTAS PARA FILTROS DEL HISTORIAL ---
-
-// GET /api/robots/names -> Retorna solo los nombres de los robots
+/**
+ * @route GET /api/robots/names
+ * @description Retorna un array simple con los nombres de los robots para filtros.
+ * @author Mery
+ */
 router.get('/robots/names', async (req, res) => {
     try {
         const robots = await logica.getRobotNames();
@@ -180,7 +231,11 @@ router.get('/robots/names', async (req, res) => {
     }
 });
 
-// GET /api/zonas/names -> Retorna solo los nombres de las zonas
+/**
+ * @route GET /api/zonas/names
+ * @description Retorna un array simple con los nombres de las zonas para filtros.
+ * @author Mery
+ */
 router.get('/zonas/names', async (req, res) => {
     try {
         const zonas = await logica.getZonaNames();
@@ -191,7 +246,11 @@ router.get('/zonas/names', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al obtener nombres de zonas' });
     }
 });
-// POST /api/login -> Autenticación de técnicos
+/**
+ * @route POST /api/login
+ * @description Autentica a un técnico y crea una sesión activa.
+ * @author Maria Algora
+ */
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -232,7 +291,10 @@ router.post('/login', async (req, res) => {
         });
     }
 });
-
+/**
+ * @route GET /api/dashboard
+ * @description Verifica si hay una sesión activa y retorna los datos del técnico.
+ */
 router.get('/dashboard', (req, res) => {
     if (!req.session.usuario) {
         return res.status(401).json({
@@ -246,7 +308,10 @@ router.get('/dashboard', (req, res) => {
         usuario: req.session.usuario
     });
 });
-
+/**
+ * @route POST /api/logout
+ * @description Finaliza la sesión actual del técnico.
+ */
 router.post('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
