@@ -231,6 +231,7 @@ async function loadZonas() {
 
 loadZonas();
 
+/* --- COMENTADO TEMPORALMENTE PARA BYPASSEAR EL LOGIN ---
 document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch('/api/dashboard', {
         credentials: 'include'
@@ -240,3 +241,228 @@ document.addEventListener('DOMContentLoaded', async () => {
         //window.location.href = '/tecnico/login/login.html';
     }
 });
+------------------------------------------------------- */
+
+
+/* --- HISTORIAL FUNCIONAL START --- */
+
+let fullHistoryData = []; 
+
+async function updateHistoryUI() {
+    try {
+        const response = await fetch('/api/historial'); 
+        fullHistoryData = await response.json();
+
+        // 1. Render Dashboard Preview
+        renderPreview(fullHistoryData.slice(0, 4));
+
+        // 2. Render Modal Table (apply current filters)
+        applyFilters();
+
+    } catch (error) {
+        console.error("Error al cargar el historial:", error);
+    }
+}
+
+
+/**
+ * Llenar los select de Robot y Zonas desde la API
+ */
+async function populateFilters() {
+    try {
+        // Cargar nombres de Robots
+        const resRobots = await fetch('/api/robots/names');
+        const robotNames = await resRobots.json();
+        const robotSelect = document.getElementById('filter-robot');
+        if (robotSelect) {
+            robotSelect.innerHTML = '<option value="">Robot</option>' + 
+                robotNames.map(name => `<option value="${name}">${name}</option>`).join('');
+        }
+
+        // Cargar nombres de Zonas (Usamos la misma lista para Zona Actual y Destino)
+        const resZonas = await fetch('/api/zonas/names');
+        const zonaNames = await resZonas.json();
+        
+        const zonaActualSelect = document.getElementById('filter-zona');
+        if (zonaActualSelect) {
+            zonaActualSelect.innerHTML = '<option value="">Zona actual</option>' + 
+                zonaNames.map(name => `<option value="${name}">${name}</option>`).join('');
+        }
+
+        const destinoSelect = document.getElementById('filter-destino');
+        if (destinoSelect) {
+            destinoSelect.innerHTML = '<option value="">Destino</option>' + 
+                zonaNames.map(name => `<option value="${name}">${name}</option>`).join('');
+        }
+    } catch (err) {
+        console.error("Error populating filters:", err);
+    }
+}
+
+// Función para cambiar de página y refrescar la vista
+window.changePage = (page, totalPages) => {
+    if (page < 1 || page > totalPages) return; // Seguridad para no salir de rango
+    currentPage = page;
+    
+    // Volvemos a aplicar filtros (esto llamará a renderTable con la nueva página)
+    applyFilters(); 
+};
+
+
+function renderPreview(data) {
+    const previewList = document.getElementById('history-preview-list');
+    if (!previewList) return;
+    previewList.innerHTML = data.map(log => `
+        <div class="history-item-row">
+            <div class="history-text-group">
+                <span class="history-route-title">${log.Robot} → ${log.Destino}</span>
+                <span class="history-sub-detail">
+                    <i class="ph ph-clock"></i> ${Math.floor(log.Duracion / 60)}m ${log.Duracion % 60}s
+                </span>
+            </div>
+            <div class="star-gold">${'★'.repeat(log.Valoracion)}${'☆'.repeat(5-log.Valoracion)}</div>
+        </div>
+    `).join('');
+}
+
+function applyFilters() {
+
+    const robotFilter = document.getElementById('filter-robot').value;
+    const destinoFilter = document.getElementById('filter-destino').value;
+    const zonaFilter = document.getElementById('filter-zona').value;
+    const valoracionFilter = document.getElementById('filter-valoracion').value;
+    const dateFilter = document.getElementById('filter-date').value;
+
+    const filtered = fullHistoryData.filter(log => {
+        const matchRobot = robotFilter === "" || log.Robot === robotFilter;
+        const matchDestino = destinoFilter === "" || log.Destino === destinoFilter;
+        const matchZona = zonaFilter === "" || log.ZonaActual === zonaFilter;
+        const matchValor = valoracionFilter === "" || log.Valoracion == valoracionFilter;
+        // Lógica para la fecha
+        let matchDate = true;
+        if (dateFilter !== "") {
+            const logDate = new Date(log.FechaHora).toISOString().split('T')[0];
+            matchDate = logDate === dateFilter;
+        }
+
+        return matchRobot && matchDestino &&matchZona   &&matchValor && matchDate;
+    });
+
+    renderTable(filtered);
+}
+window.exportToCSV = () => {
+    if (fullHistoryData.length === 0) return;
+    
+    // Convert filtered data to CSV string
+    const headers = ["ID,Robot,Zona Actual,Destino,Fecha,Duracion,Valoracion,Comentario"];
+    const rows = fullHistoryData.map(log => 
+        `${log.InteraccionID},${log.Robot},${log.ZonaActual},${log.Destino},${log.FechaHora},${log.Duracion},${log.Valoracion},"${log.Comentario || ''}"`
+    );
+    
+    const csvContent = "data:text/csv;charset=utf-8," + headers.concat(rows).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "historial_roberto.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+/* --- LÓGICA DE PAGINACIÓN DINÁMICA --- */
+let currentPage = 1;
+const rowsPerPage = 10;
+
+function renderPagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    const container = document.getElementById('pagination-controls');
+    if (!container) return;
+
+    if (totalPages <= 1) {
+        container.innerHTML = ''; 
+        return;
+    }
+
+    // Botón Izquierdo
+    let html = `<i class="ph ph-caret-left" onclick="changePage(${currentPage - 1}, ${totalPages})" style="cursor:pointer"></i>`;
+    
+    // Números de página
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<span class="page-num ${i === currentPage ? 'active' : ''}" onclick="changePage(${i}, ${totalPages})">${i}</span>`;
+    }
+    
+    // Botón Derecho
+    html += `<i class="ph ph-caret-right" onclick="changePage(${currentPage + 1}, ${totalPages})" style="cursor:pointer"></i>`;
+    
+    container.innerHTML = html;
+}
+function renderTable(data) {
+    const tableBody = document.getElementById('full-history-table-body');
+    const stats = document.getElementById('table-stats');
+    if (!tableBody) return;
+
+    const total = data.length;
+
+    // --- LÓGICA DE RECORTAR DATOS (Slicing) ---
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const paginatedData = data.slice(start, end); // Solo toma las 10 filas de esta página
+
+    if (total === 0) {
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">No se encontraron resultados</td></tr>`;
+        if (stats) stats.innerText = "No hay interacciones";
+        return;
+    }
+
+    // Dibujar las filas recortadas
+    tableBody.innerHTML = paginatedData.map(log => `
+        <tr>
+            <td>${log.InteraccionID}</td>
+            <td><strong>${log.Robot}</strong></td>
+            <td>${log.ZonaActual}</td>
+            <td>${log.Destino}</td>
+            <td style="font-size: 0.85rem;">${new Date(log.FechaHora).toLocaleString()}</td>
+            <td>${Math.floor(log.Duracion / 60)}m ${log.Duracion % 60}s</td>
+            <td><span class="star-gold">${'★'.repeat(log.Valoracion)}${'☆'.repeat(5-log.Valoracion)}</span></td>
+            <td style="color: #6b7280; font-size: 0.85rem;">${log.Comentario || 'Sin comentarios'}</td>
+        </tr>
+    `).join('');
+
+    // Actualizar texto de estadísticas dinámicamente
+    if (stats) {
+        stats.innerText = `Mostrando ${start + 1} a ${Math.min(end, total)} de ${total} interacciones`;
+    }
+
+    renderPagination(total);
+}
+
+window.clearAllFilters = () => {
+    document.getElementById('filter-robot').value = "";
+    document.getElementById('filter-destino').value = "";
+    document.getElementById('filter-zona').value = "";
+    document.getElementById('filter-valoracion').value = "";
+    if(document.getElementById('filter-date')) document.getElementById('filter-date').value = "";
+    renderTable(fullHistoryData);
+};
+
+window.openHistoryModal = () => {
+    document.getElementById('historyModal').style.display = 'flex';
+};
+
+window.closeHistoryModal = () => {
+    document.getElementById('historyModal').style.display = 'none';
+};
+
+// Listen for changes on all filters
+document.addEventListener('change', (e) => {
+    if (e.target.id && e.target.id.startsWith('filter-')) {
+        applyFilters();
+    }
+});
+
+// INITIAL LOAD
+document.addEventListener('DOMContentLoaded', () => {
+    populateFilters(); // Llena los dropdowns desde la base de datos
+    updateHistoryUI(); // Carga los datos de la tabla
+});
+
+/* --- HISTORIAL FUNCIONAL END --- */

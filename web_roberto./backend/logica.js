@@ -206,6 +206,51 @@ async function insertInteraccion(data) {
 
     return result.insertId;
 }
+/**
+ * Obtiene el historial de interacciones del robot.
+ * Realiza un JOIN para transformar IDs en nombres legibles (Robot y Zonas).
+ * @author Mery
+ * @returns {Promise<Array>} Lista de interacciones con nombres de zonas y robots
+ */
+async function getInteracciones() {
+    const query = `
+        SELECT 
+            i.InteraccionID, 
+            r.Nombre AS Robot, 
+            z1.Nombre AS ZonaActual, 
+            z2.Nombre AS Destino, 
+            i.FechaHora, 
+            i.Duracion, 
+            i.Valoracion, 
+            i.Comentario
+        FROM Interaccion i
+        JOIN Robot r ON i.RobotID = r.RobotID
+        JOIN Zona z1 ON i.ZonaActualID = z1.ZonaID
+        JOIN Zona z2 ON i.ZonaDestinoID = z2.ZonaID
+        ORDER BY i.FechaHora DESC;
+    `;
+    const [rows] = await pool.query(query);
+    return rows;
+}
+/**
+ * Obtiene solo los nombres de los robots para los filtros.
+ * @author Mery
+ * @returns {Promise<Array>}
+ */
+async function getRobotNames() {
+    const [rows] = await pool.query('SELECT DISTINCT Nombre FROM Robot');
+    return rows;
+}
+
+/**
+ * Obtiene los nombres de las zonas (para Zona Actual y Destino).
+ * @author Mery
+ * @returns {Promise<Array>}
+ */
+async function getZonaNames() {
+    const [rows] = await pool.query('SELECT DISTINCT Nombre FROM Zona');
+    return rows;
+}
 
 module.exports = {
     pool,
@@ -217,5 +262,9 @@ module.exports = {
     getZonaById,
     getAllZonas,
     validarCredenciales,
-    insertInteraccion
+    insertInteraccion,
+    getInteracciones,
+    getRobotNames,
+    getZonaNames
+    
 };
