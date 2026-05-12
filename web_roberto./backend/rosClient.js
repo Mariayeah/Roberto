@@ -7,6 +7,8 @@ let lastInsertTime = 0;
 let currentGoal = null;
 let rosInstance = null;
 let goalTopic = null;
+let initialDistance = 0;
+let currentSpeed = 0;
 
 function init() {
     const ros = new ROSLIB.Ros({
@@ -24,6 +26,20 @@ function init() {
 
     ros.on('close', () => {
         console.log('⚠️ Conexión cerrada con ROS Bridge');
+    });
+
+    // ---------------------------------------------------------
+    // AÑADIDO T09: ODOM LISTENER (Velocidad)
+    // ---------------------------------------------------------
+    const odomListener = new ROSLIB.Topic({
+        ros: ros,
+        name: '/odom',
+        messageType: 'nav_msgs/Odometry'
+    });
+
+    odomListener.subscribe((message) => {
+        // Guardamos la velocidad lineal absoluta
+        currentSpeed = Math.abs(message.twist.twist.linear.x);
     });
 
     // ---------------------------------------------------------
@@ -47,6 +63,11 @@ function init() {
             y: y,
             timestamp: new Date().toISOString()
         };
+
+        // Calcular distancia inicial mediante teorema de Pitágoras
+        const dx = x - latestPosition.x;
+        const dy = y - latestPosition.y;
+        initialDistance = Math.sqrt(dx * dx + dy * dy);
 
         const now = Date.now();
         // Euclidean distance calculation
@@ -115,9 +136,50 @@ function sendGoal(x, y) {
     console.log(`🎯 Goal published to ROS: x=${x}, y=${y}`);
 }
 
+function getNavigationStatus() {
+    if (!currentGoal) {
+        return { active: false, arrived: false };
+    }
+
+    // Calcular distancia actual al objetivo
+    const dx = currentGoal.x - latestPosition.x;
+    const dy = currentGoal.y - latestPosition.y;
+    const currentDistance = Math.sqrt(dx * dx + dy * dy);
+
+    // Calcular progreso (0 a 100)
+    let progress = 0;
+    if (initialDistance > 0) {
+        progress = 100 - ((currentDistance / initialDistance) * 100);
+        progress = Math.max(0, Math.min(100, progress)); // Limitar entre 0 y 100
+    }
+
+    // Calcular ETA (Tiempo estimado) - Evita dividir por 0
+    let eta = 0;
+    if (currentSpeed > 0.05) { 
+        eta = currentDistance / currentSpeed;
+    }
+
+    // TRIGGER DE LLEGADA (Margen de 0.15m exacto al de simple_follower.py)
+    const isArrived = currentDistance <= 0.15;
+    
+    if (isArrived) {
+        currentGoal = null; // Reseteamos la misión al llegar
+    }
+
+    return {
+        active: true,
+        arrived: isArrived,
+        progress: Math.round(progress),
+        speed: currentSpeed,
+        eta_seconds: eta,
+        distance_remaining: currentDistance
+    };
+}
+
 module.exports = {
     init,
     getLatestPosition,
     getCurrentGoal,
-    sendGoal
+    sendGoal,
+    getNavigationStatus
 };

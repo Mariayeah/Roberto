@@ -207,6 +207,18 @@ async function insertInteraccion(data) {
     return result.insertId;
 }
 
+/**
+ * Actualiza una interacción existente con la valoración final y el comentario.
+ */
+async function updateInteraccion(interaccionId, valoracion, comentario) {
+    const query = `
+        UPDATE Interaccion 
+        SET Valoracion = ?, Comentario = ? 
+        WHERE InteraccionID = ?
+    `;
+    await pool.query(query, [valoracion, comentario, interaccionId]);
+}
+
 module.exports = {
     pool,
     getZonas,
@@ -217,5 +229,6 @@ module.exports = {
     getZonaById,
     getAllZonas,
     validarCredenciales,
-    insertInteraccion
+    insertInteraccion,
+    updateInteraccion
 };
