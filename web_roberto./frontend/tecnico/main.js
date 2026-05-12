@@ -1,5 +1,14 @@
+/**
+ * @file main.js
+ * @description Controlador del Frontend para el panel del técnico del robot "Roberto".
+ * Gestiona la visualización del mapa mediante ROS2D, la telemetría suavizada (LERP),
+ * la navegación interactiva y el filtrado avanzado del historial de misiones.
+ * @authors Maria, Mery, Chris
+ * @version 1.0.0
+ */
+ 
 // -----------------------------
-// GLOBAL STATE
+// ESTADO GLOBAL
 // -----------------------------
 let allZonas = [];
 let currentGoal = null;
@@ -74,9 +83,13 @@ window.onload = () => {
         initRobotPosition();
     });
 
-    // -----------------------------
-    // TELEMETRY LOGIC (REAL-TIME POS)
-    // -----------------------------
+/**
+ * @description Realiza una petición al backend para obtener la posición actual del robot.
+ * Actualiza la variable global targetPos con las coordenadas (x, y) reales.
+ * @author Mery
+ * @async
+ * @returns {Promise<void>}
+ */
     async function fetchTelemetry() {
         try {
             const res = await fetch('/api/position');
@@ -97,9 +110,12 @@ window.onload = () => {
     // Poll the backend for the real /amcl_pose every 100ms
     setInterval(fetchTelemetry, 100);
 
-    // -----------------------------
-    // VISUAL UPDATE LOGIC
-    // -----------------------------
+/**
+ * @description Actualiza la posición de los marcadores (robot y meta) en el canvas.
+ * Aplica la inversión del eje Y para transformar coordenadas ROS a coordenadas de píxeles.
+ * @author Mery
+ * @returns {void}
+ */
     function updateVisuals() {
         if (!isNaN(currentPos.x) && !isNaN(currentPos.y)) {
             robotMarker.x = currentPos.x;
@@ -115,7 +131,13 @@ window.onload = () => {
         }
     }
 
-    // Initial position fetch
+/**
+ * @description Sincroniza la posición inicial del marcador visual con la posición 
+ * real del robot al cargar la página o el mapa para evitar saltos visuales.
+ * @author Mery
+ * @async
+ * @returns {Promise<void>}
+ */
     async function initRobotPosition() {
         try {
             const res = await fetch('/api/position');
@@ -168,9 +190,13 @@ window.onload = () => {
     }, 1000);
 };
 
-// -----------------------------
-// SEND GOAL (Button Action)
-// -----------------------------
+/**
+ * @description Gestiona el envío de un nuevo objetivo de navegación.
+ * Obtiene coordenadas de la zona, actualiza la UI y notifica al backend/Nav2.
+ * @author Mery
+ * @async
+ * @returns {Promise<void>}
+ */
 window.sendGoal = async function () {
     const zonaSelect = document.getElementById('zonaSelect');
     const zonaId = zonaSelect.value;
@@ -206,9 +232,13 @@ window.sendGoal = async function () {
     });
 };
 
-// -----------------------------
-// LOAD DESTINATIONS
-// -----------------------------
+/**
+ * @description Recupera la lista de zonas desde la base de datos y rellena 
+ * el selector de destinos en la interfaz de usuario.
+ * @author Mery
+ * @async
+ * @returns {Promise<void>}
+ */
 async function loadZonas() {
     try {
         const res = await fetch('/api/zonas');
@@ -231,7 +261,7 @@ async function loadZonas() {
 
 loadZonas();
 
-/* --- COMENTADO TEMPORALMENTE PARA BYPASSEAR EL LOGIN ---
+// --- COMENTADO TEMPORALMENTE PARA BYPASSEAR EL LOGIN ---
 document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch('/api/dashboard', {
         credentials: 'include'
@@ -241,13 +271,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/tecnico/login/login.html';
     }
 });
-------------------------------------------------------- */
 
+//------------------------------------------------------- */
 
 /* --- HISTORIAL FUNCIONAL START --- */
 
-let fullHistoryData = []; 
 
+
+let fullHistoryData = []; 
+/**
+ * @description Actualiza la interfaz del historial consultando la API. 
+ * Gestiona tanto la vista previa como la tabla completa del modal.
+ * @author Mery
+ * @async
+ * @returns {Promise<void>}
+ */
 async function updateHistoryUI() {
     try {
         const response = await fetch('/api/historial'); 
@@ -266,7 +304,11 @@ async function updateHistoryUI() {
 
 
 /**
- * Llenar los select de Robot y Zonas desde la API
+ * @description Pobla dinámicamente los elementos <select> de los filtros en el modal 
+ * con los nombres de robots y zonas extraídos de la base de datos.
+ * @author Mery
+ * @async
+ * @returns {Promise<void>}
  */
 async function populateFilters() {
     try {
@@ -299,7 +341,13 @@ async function populateFilters() {
     }
 }
 
-// Función para cambiar de página y refrescar la vista
+/**
+ * @description Cambia la página activa del historial y solicita un nuevo renderizado de la tabla.
+ * @author Mery
+ * @param {number} page - Índice de la página de destino.
+ * @param {number} totalPages - Cantidad máxima de páginas disponibles.
+ * @returns {void}
+ */
 window.changePage = (page, totalPages) => {
     if (page < 1 || page > totalPages) return; // Seguridad para no salir de rango
     currentPage = page;
@@ -350,6 +398,11 @@ function applyFilters() {
 
     renderTable(filtered);
 }
+/**
+ * @description Exporta el historial de interacciones almacenado a un archivo .csv.
+ * @author Mery
+ * @returns {void}
+ */
 window.exportToCSV = () => {
     if (fullHistoryData.length === 0) return;
     
@@ -371,7 +424,13 @@ window.exportToCSV = () => {
 /* --- LÓGICA DE PAGINACIÓN DINÁMICA --- */
 let currentPage = 1;
 const rowsPerPage = 10;
-
+/**
+ * @description Genera los controles de paginación (números y flechas) calculando 
+ * el total de páginas necesarias para el conjunto de datos actual.
+ * @author Mery
+ * @param {number} totalItems - Número total de registros filtrados.
+ * @returns {void}
+ */
 function renderPagination(totalItems) {
     const totalPages = Math.ceil(totalItems / rowsPerPage);
     const container = document.getElementById('pagination-controls');
@@ -395,6 +454,13 @@ function renderPagination(totalItems) {
     
     container.innerHTML = html;
 }
+/**
+ * @description Renderiza las filas de la tabla de historial basándose en los datos 
+ * filtrados y el índice de la página actual.
+ * @author Mery
+ * @param {Array<Object>} data - Lista de interacciones a mostrar.
+ * @returns {void}
+ */
 function renderTable(data) {
     const tableBody = document.getElementById('full-history-table-body');
     const stats = document.getElementById('table-stats');
@@ -434,7 +500,11 @@ function renderTable(data) {
 
     renderPagination(total);
 }
-
+/**
+ * @description Resetea todos los valores de los filtros a su estado inicial.
+ * @author Mery
+ * @returns {void}
+ */
 window.clearAllFilters = () => {
     document.getElementById('filter-robot').value = "";
     document.getElementById('filter-destino').value = "";
