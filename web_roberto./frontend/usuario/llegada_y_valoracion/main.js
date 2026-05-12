@@ -8,28 +8,21 @@
  */
 let rating = 0;
 
-<<<<<<< HEAD
-/**
- * Configura los eventos de interacción para el sistema de estrellas.
- * Al hacer clic, actualiza la variable global 'rating' y la apariencia visual.
- * @author Mery
- */
-=======
 // ==========================================
 // 1. CARGAR DATOS REALES AL ABRIR LA PÁGINA
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Recuperar datos guardados de la pantalla anterior
+  // Recuperar datos guardados por la pantalla anterior (navigation.js)
   const destName = sessionStorage.getItem('currentDestinationName') || "Destino";
   const durationSecs = parseInt(sessionStorage.getItem('tripDuration')) || 0;
   const distance = sessionStorage.getItem('tripDistance') || "--";
 
-  // Formatear duración (de segundos a MM:SS)
+  // Formatear duración (de segundos a formato MM:SS)
   const mins = Math.floor(durationSecs / 60);
   const secs = durationSecs % 60;
   const timeFormatted = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-  // Inyectar en el HTML
+  // Inyectar los valores reales en el HTML, sustituyendo los Mocks
   const terminalEl = document.querySelector('.terminal');
   if (terminalEl) terminalEl.innerHTML = `<span>⌂</span> ${destName}`;
   
@@ -40,10 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (distanciaEl) distanciaEl.textContent = `${distance}m`;
 });
 
-// ==========================================
-// 2. SISTEMA DE ESTRELLAS
-// ==========================================
->>>>>>> feat/navcurso
+/**
+ * Configura los eventos de interacción para el sistema de estrellas.
+ * Al hacer clic, actualiza la variable global 'rating' y la apariencia visual.
+ * @author Mery
+ */
 const stars = document.querySelectorAll("#stars span");
 
 stars.forEach(star => {
@@ -55,7 +49,6 @@ stars.forEach(star => {
   });
 });
 
-<<<<<<< HEAD
 /**
  * Gestiona el envío del formulario de feedback.
  * Valida la entrada, recopila los datos de la interacción y los envía a la API.
@@ -63,11 +56,6 @@ stars.forEach(star => {
  * @async
  * @returns {Promise<void>}
  */
-=======
-// ==========================================
-// 3. FINALIZAR Y GUARDAR VALORACIÓN EN BBDD
-// ==========================================
->>>>>>> feat/navcurso
 document.getElementById("finalizar").addEventListener("click", async () => {
 if (rating === 0) {
     alert("Por favor, selecciona una puntuación.");

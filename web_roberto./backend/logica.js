@@ -298,12 +298,8 @@ module.exports = {
     getAllZonas,
     validarCredenciales,
     insertInteraccion,
-<<<<<<< HEAD
     getInteracciones,
     getRobotNames,
-    getZonaNames
-    
-=======
+    getZonaNames,
     updateInteraccion
->>>>>>> feat/navcurso
 };

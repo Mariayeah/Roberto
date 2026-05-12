@@ -16,16 +16,10 @@ let lastInsertTime = 0;
 let currentGoal = null;
 let rosInstance = null;
 let goalTopic = null;
-<<<<<<< HEAD
 /**
  * Inicializa la conexión con ROS Bridge y configura los suscriptores y publicadores.
  * Se conecta al puerto 9090 por defecto.
  */
-=======
-let initialDistance = 0;
-let currentSpeed = 0;
-
->>>>>>> feat/navcurso
 function init() {
     const ros = new ROSLIB.Ros({
         url: 'ws://127.0.0.1:9090'
@@ -44,30 +38,10 @@ function init() {
         console.log('⚠️ Conexión cerrada con ROS Bridge');
     });
 
-<<<<<<< HEAD
     /**
      * Callback para el tópico /amcl_pose.
      * Actualiza la posición en tiempo real y gestiona la persistencia en DB.
      */
-=======
-    // ---------------------------------------------------------
-    // AÑADIDO T09: ODOM LISTENER (Velocidad)
-    // ---------------------------------------------------------
-    const odomListener = new ROSLIB.Topic({
-        ros: ros,
-        name: '/odom',
-        messageType: 'nav_msgs/Odometry'
-    });
-
-    odomListener.subscribe((message) => {
-        // Guardamos la velocidad lineal absoluta
-        currentSpeed = Math.abs(message.twist.twist.linear.x);
-    });
-
-    // ---------------------------------------------------------
-    // 1. POSE LISTENER (Localization)
-    // ---------------------------------------------------------
->>>>>>> feat/navcurso
     const poseListener = new ROSLIB.Topic({
         ros: ros,
         name: '/amcl_pose',
