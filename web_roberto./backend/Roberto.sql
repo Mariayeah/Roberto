@@ -11,6 +11,8 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
+-- Desactivamos la comprobación de claves foráneas temporalmente para evitar errores al borrar
+SET FOREIGN_KEY_CHECKS = 0;
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -27,6 +29,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `Aeropuerto`
 --
 
+DROP TABLE IF EXISTS `Aeropuerto`;
 CREATE TABLE `Aeropuerto` (
   `CodigoIATA` varchar(10) NOT NULL,
   `Nombre` varchar(100) NOT NULL
@@ -46,6 +49,7 @@ INSERT INTO `Aeropuerto` (`CodigoIATA`, `Nombre`) VALUES
 -- Table structure for table `Evento`
 --
 
+DROP TABLE IF EXISTS `Evento`;
 CREATE TABLE `Evento` (
   `EventoID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -71,6 +75,7 @@ INSERT INTO `Evento` (`EventoID`, `RobotID`, `PosicionID`, `FechaHora`, `TipoEve
 -- Table structure for table `Interaccion`
 --
 
+DROP TABLE IF EXISTS `Interaccion`;
 CREATE TABLE `Interaccion` (
   `InteraccionID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -111,6 +116,7 @@ INSERT INTO `Interaccion` (`InteraccionID`, `RobotID`, `ZonaActualID`, `ZonaDest
 -- Table structure for table `Mantenimiento`
 --
 
+DROP TABLE IF EXISTS `Mantenimiento`;
 CREATE TABLE `Mantenimiento` (
   `MantenimientoID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -128,6 +134,7 @@ CREATE TABLE `Mantenimiento` (
 -- Table structure for table `PosicionRobot`
 --
 
+DROP TABLE IF EXISTS `PosicionRobot`;
 CREATE TABLE `PosicionRobot` (
   `PosicionID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -326,6 +333,7 @@ INSERT INTO `PosicionRobot` (`PosicionID`, `RobotID`, `PosX`, `PosY`, `FechaHora
 -- Table structure for table `Robot`
 --
 
+DROP TABLE IF EXISTS `Robot`;
 CREATE TABLE `Robot` (
   `RobotID` int(11) NOT NULL,
   `Nombre` varchar(50) NOT NULL,
@@ -350,6 +358,7 @@ INSERT INTO `Robot` (`RobotID`, `Nombre`, `Descripcion`, `Bateria`, `CamaraActiv
 -- Table structure for table `Tecnico`
 --
 
+DROP TABLE IF EXISTS `Tecnico`;
 CREATE TABLE `Tecnico` (
   `TecnicoID` int(11) NOT NULL,
   `Nombre` varchar(100) NOT NULL,
@@ -372,6 +381,7 @@ INSERT INTO `Tecnico` (`TecnicoID`, `Nombre`, `Email`, `Contrasena`) VALUES
 -- Table structure for table `Zona`
 --
 
+DROP TABLE IF EXISTS `Zona`;
 CREATE TABLE `Zona` (
   `ZonaID` int(11) NOT NULL,
   `AeropuertoCodigo` varchar(10) NOT NULL,
@@ -547,6 +557,10 @@ ALTER TABLE `PosicionRobot`
 --
 ALTER TABLE `Zona`
   ADD CONSTRAINT `Zona_ibfk_1` FOREIGN KEY (`AeropuertoCodigo`) REFERENCES `Aeropuerto` (`CodigoIATA`);
+  
+-- Volvemos a activar la comprobación de claves foráneas
+SET FOREIGN_KEY_CHECKS = 1;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -29,11 +29,25 @@ router.get('/goal', (req, res) => {
     res.json(rosClient.getCurrentGoal());
 });
 
+<<<<<<< HEAD
 /**
  * @route GET /api/zonas
  * @description Recupera la lista completa de zonas con sus IDs y nombres.
  * @author Mery
  */
+=======
+// GET /api/navigation/status -> Retorna progreso, velocidad, ETA y estado de llegada (T09)
+router.get('/navigation/status', (req, res) => {
+    if (typeof rosClient.getNavigationStatus === 'function') {
+        const status = rosClient.getNavigationStatus();
+        res.json(status);
+    } else {
+        res.status(500).json({ error: 'getNavigationStatus no está implementado en rosClient' });
+    }
+});
+
+// GET /api/zonas -> Lista todas las zonas (id y nombre)
+>>>>>>> feat/navcurso
 router.get('/zonas', async (req, res) => {
     try {
         const zonas = await logica.getAllZonas();
@@ -138,6 +152,7 @@ router.post('/navigate', async (req, res) => {
     console.log(`[API Navigation] Navegación iniciada hacia destino ID: ${destination_id}`);
     res.json({ success: true, message: 'Navegación simulada localmente (Robot avisado).' });
 });
+<<<<<<< HEAD
 /**
  * @route POST /api/valoracion
  * @description Registra el feedback de un usuario sobre una interacción con el robot.
@@ -153,36 +168,72 @@ router.post('/valoracion', async (req, res) => {
             valoracion,
             comentario
         } = req.body;
+=======
+>>>>>>> feat/navcurso
 
-        // Basic validation
-        if (!robotId || !zonaActualId || !zonaDestinoId || !duracion) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields'
+// PUT /api/interaccion/valorar -> Actualiza el registro final con estrellas y comentario
+router.put('/interaccion/valorar', async (req, res) => {
+    try {
+        const { interaccionId, valoracion, comentario } = req.body;
+        
+        if (!interaccionId || !valoracion) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Faltan datos (interaccionId o valoracion)' 
             });
         }
 
+        await logica.updateInteraccion(interaccionId, valoracion, comentario);
+        
+        res.json({ 
+            success: true, 
+            message: 'Valoración actualizada correctamente en la BD' 
+        });
+
+    } catch (error) {
+        console.error('[API] Error actualizando valoración:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Database error' 
+        });
+    }
+});
+
+// POST /api/interaccion/llegada -> Guarda el trayecto al llegar (sin valoración)
+router.post('/interaccion/llegada', async (req, res) => {
+    try {
+        const { robotId, zonaActualId, zonaDestinoId, duracion } = req.body;
+        
         const id = await logica.insertInteraccion({
             robotId,
             zonaActualId,
             zonaDestinoId,
             duracion,
-            valoracion,
-            comentario
+            valoracion: null,
+            comentario: null
         });
 
-        res.json({
-            success: true,
-            message: 'Valoración guardada',
-            id
-        });
-
+        res.json({ success: true, id });
     } catch (error) {
-        console.error('[API] Error guardando valoración:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Database error'
-        });
+        console.error('[API] Error guardando llegada:', error);
+        res.status(500).json({ success: false, message: 'Database error' });
+    }
+});
+
+// PUT /api/interaccion/valorar -> Actualiza el registro final con estrellas y comentario
+router.put('/interaccion/valorar', async (req, res) => {
+    try {
+        const { interaccionId, valoracion, comentario } = req.body;
+        
+        if (!interaccionId || !valoracion) {
+            return res.status(400).json({ success: false, message: 'Faltan datos' });
+        }
+
+        await logica.updateInteraccion(interaccionId, valoracion, comentario);
+        res.json({ success: true, message: 'Valoración actualizada correctamente' });
+    } catch (error) {
+        console.error('[API] Error actualizando valoración:', error);
+        res.status(500).json({ success: false });
     }
 });
 
@@ -201,11 +252,15 @@ router.post('/robot/status', async (req, res) => {
         res.status(500).json({ success: false, message: 'Database logging error' });
     }
 });
+<<<<<<< HEAD
 /**
  * @route GET /api/historial
  * @description Obtiene el historial completo de interacciones detalladas.
  * @author Mery
  */
+=======
+// GET /api/historial -> Retorna el historial completo con nombres
+>>>>>>> feat/navcurso
 router.get('/historial', async (req, res) => {
     try {
         const historial = await logica.getInteracciones();
@@ -215,6 +270,7 @@ router.get('/historial', async (req, res) => {
         res.status(500).json({ success: false, error: 'Failed to load history' });
     }
 });
+<<<<<<< HEAD
 /**
  * @route GET /api/robots/names
  * @description Retorna un array simple con los nombres de los robots para filtros.
@@ -236,6 +292,23 @@ router.get('/robots/names', async (req, res) => {
  * @description Retorna un array simple con los nombres de las zonas para filtros.
  * @author Mery
  */
+=======
+// --- RUTAS PARA FILTROS DEL HISTORIAL ---
+
+// GET /api/robots/names -> Retorna solo los nombres de los robots
+router.get('/robots/names', async (req, res) => {
+    try {
+        const robots = await logica.getRobotNames();
+        // Mapeamos para enviar un array simple de strings: ["Roberto1", "Roberto2"]
+        const names = robots.map(r => r.Nombre);
+        res.json(names);
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error al obtener nombres de robots' });
+    }
+});
+
+// GET /api/zonas/names -> Retorna solo los nombres de las zonas
+>>>>>>> feat/navcurso
 router.get('/zonas/names', async (req, res) => {
     try {
         const zonas = await logica.getZonaNames();
@@ -246,11 +319,15 @@ router.get('/zonas/names', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al obtener nombres de zonas' });
     }
 });
+<<<<<<< HEAD
 /**
  * @route POST /api/login
  * @description Autentica a un técnico y crea una sesión activa.
  * @author Maria Algora
  */
+=======
+// POST /api/login -> Autenticación de técnicos
+>>>>>>> feat/navcurso
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 

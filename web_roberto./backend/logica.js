@@ -275,6 +275,18 @@ async function getZonaNames() {
     return rows;
 }
 
+/**
+ * Actualiza una interacción existente con la valoración final y el comentario.
+ */
+async function updateInteraccion(interaccionId, valoracion, comentario) {
+    const query = `
+        UPDATE Interaccion 
+        SET Valoracion = ?, Comentario = ? 
+        WHERE InteraccionID = ?
+    `;
+    await pool.query(query, [valoracion, comentario, interaccionId]);
+}
+
 module.exports = {
     pool,
     getZonas,
@@ -286,8 +298,12 @@ module.exports = {
     getAllZonas,
     validarCredenciales,
     insertInteraccion,
+<<<<<<< HEAD
     getInteracciones,
     getRobotNames,
     getZonaNames
     
+=======
+    updateInteraccion
+>>>>>>> feat/navcurso
 };

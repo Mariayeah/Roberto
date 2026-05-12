@@ -334,3 +334,92 @@ body {
     color: var(--navy);
     margin-top: 1rem;
 }
+
+/* =========================================
+   PANTALLA DE NAVEGACIÓN EN CURSO (T09)
+   ========================================= */
+.nav-screen { max-width: 1100px; align-items: center; }
+.nav-header { text-align: center; margin-bottom: 2rem; }
+
+.nav-badge {
+    background: var(--orange);
+    color: white;
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+.nav-header h1 { font-size: 2rem; color: var(--navy); }
+
+.nav-content-layout { display: flex; gap: 2rem; width: 100%; }
+
+/* Sidebar */
+.nav-sidebar { width: 250px; display: flex; flex-direction: column; gap: 1.5rem; }
+.robot-profile-card { background: white; border-radius: 1.25rem; padding: 1.5rem; text-align: center; box-shadow: var(--shadow-card); }
+.robot-avatar {
+    width: 70px; height: 70px; background: var(--navy); color: white;
+    border-radius: 50%; margin: 0 auto 1rem auto;
+    display: flex; justify-content: center; align-items: center;
+}
+.robot-profile-card h3 { font-size: 1.1rem; color: var(--navy); }
+.robot-profile-card p { font-size: 0.85rem; color: var(--text-light-grey); }
+
+.live-data-card { background: var(--navy); border-radius: 1.25rem; padding: 1.5rem; color: white; box-shadow: var(--shadow-card); }
+.live-header {
+    display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;
+    font-weight: 600; letter-spacing: 1px; margin-bottom: 1.5rem; opacity: 0.9;
+}
+.pulse-dot {
+    width: 8px; height: 8px; background: #4cd964; border-radius: 50%;
+    box-shadow: 0 0 10px #4cd964; animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.live-stat { display: flex; flex-direction: column; gap: 0.25rem; }
+.live-stat .label { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+.live-stat strong { font-size: 1.8rem; font-weight: 600; }
+
+/* Main Panel */
+.nav-main-panel { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
+.track-card { background: white; border-radius: 1.25rem; padding: 2.5rem; box-shadow: var(--shadow-card); }
+
+/* Track Line */
+.track-container { margin-bottom: 3rem; position: relative; padding: 0 1rem; }
+.track-endpoints { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+.endpoint { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.endpoint-icon {
+    width: 40px; height: 40px; background: var(--icon-bg-beige); color: #c4996c;
+    border-radius: 0.5rem; display: flex; justify-content: center; align-items: center;
+}
+.endpoint-icon.dark { background: var(--navy); color: white; }
+.endpoint span { font-size: 0.85rem; font-weight: 500; color: var(--navy); }
+
+.track-line-wrapper { position: relative; height: 6px; width: 100%; margin-top: -30px; z-index: 0; }
+.track-line-bg { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #f0ebe1; border-radius: 3px; }
+.track-line-fill { position: absolute; top: 0; left: 0; bottom: 0; background: var(--orange); border-radius: 3px; transition: width 0.5s linear; }
+
+.robot-marker {
+    position: absolute; top: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px;
+    background: var(--navy); border-radius: 50%; display: flex; justify-content: center; align-items: center;
+    box-shadow: 0 4px 10px rgba(53, 66, 102, 0.3); transition: left 0.5s linear; z-index: 2;
+}
+
+/* Stats Grid */
+.nav-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.nav-stat-box { background: var(--bg-color); padding: 1.25rem; border-radius: 0.75rem; text-align: center; display: flex; flex-direction: column; gap: 0.5rem; }
+.nav-stat-box .label { font-size: 0.85rem; color: var(--text-grey); }
+.nav-stat-box .value { font-size: 1.3rem; color: var(--navy); }
+
+/* Warning Bar */
+.warning-bar {
+    background: rgba(240, 161, 80, 0.15); border: 1px solid rgba(240, 161, 80, 0.3); color: #c47c2b;
+    padding: 1rem 1.5rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 1rem;
+    font-size: 0.9rem; font-weight: 500;
+}

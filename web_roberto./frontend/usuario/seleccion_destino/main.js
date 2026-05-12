@@ -1,3 +1,4 @@
+// main.js - Interfaz del Pasajero (Roberto)
 const UI_TRANSLATIONS = {
     es: {
         titleCat: "Selecciona tu destino",
@@ -10,15 +11,23 @@ const UI_TRANSLATIONS = {
         btnContinue: "Continuar",
         btnSending: "Enviando comando...",
         navigating: "Iniciando navegación...",
-        // Mock Categories
+        // Categorías
         cat_puertas: { name: "Puerta 1-21", sub: "Vuelos internacionales" },
         cat_comida: { name: "Comida", sub: "Restaurantes" },
         cat_ocio: { name: "Ocio", sub: "Tiendas y compras" },
         cat_salida: { name: "Salida", sub: "Salida principal" },
-        // Mock sub
         wordGate: "Puerta",
         sub_embarque: "Embarque",
-        sub_embarqueVip: "Embarque VIP"
+        sub_embarqueVip: "Embarque VIP",
+        // T09 - Navegación en curso
+        navTitle: "Roberto está en camino",
+        navSubtitle: "Sigue al robot hasta tu destino",
+        liveData: "DATOS EN VIVO",
+        navSpeed: "Velocidad",
+        navDistLeft: "Distancia restante",
+        navEta: "Tiempo Estimado",
+        navProg: "Progreso",
+        navWarning: "Por favor, mantente cerca de Roberto durante el trayecto"
     },
     en: {
         titleCat: "Select your destination",
@@ -38,86 +47,34 @@ const UI_TRANSLATIONS = {
         wordGate: "Gate",
         sub_embarque: "Boarding",
         sub_embarqueVip: "VIP Boarding"
-    },
-    de: {
-        titleCat: "Ziel auswählen",
-        subtitleCat: "Wähle die Kategorie, zu der du gehen möchtest",
-        titleSub: "Spezifisches Ziel auswählen",
-        subtitleSub: "Wähle, wohin du in diesem Bereich gehen möchtest",
-        summaryDest: "AUSGEWÄHLTES ZIEL",
-        dist: "Entfernung",
-        time: "Geschätzte Zeit",
-        btnContinue: "Weiter",
-        btnSending: "Befehl senden...",
-        navigating: "Navigation starten...",
-        cat_puertas: { name: "Tor 1-21", sub: "Internationale Flüge" },
-        cat_comida: { name: "Essen", sub: "Restaurants" },
-        cat_ocio: { name: "Freizeit", sub: "Geschäfte & Einkaufen" },
-        cat_salida: { name: "Ausgang", sub: "Hauptausgang" },
-        wordGate: "Tor",
-        sub_embarque: "Einsteigen",
-        sub_embarqueVip: "VIP-Einsteigen"
-    },
-    fr: {
-        titleCat: "Sélectionnez la destination",
-        subtitleCat: "Choisissez la catégorie où vous souhaitez aller",
-        titleSub: "Sélectionnez une destination spécifique",
-        subtitleSub: "Choisissez où vous voulez aller dans cette zone",
-        summaryDest: "DESTINATION SÉLECTIONNÉE",
-        dist: "Distance",
-        time: "Temps estimé",
-        btnContinue: "Continuer",
-        btnSending: "Envoi de la commande...",
-        navigating: "Démarrage de la navigation...",
-        cat_puertas: { name: "Porte 1-21", sub: "Vols internationaux" },
-        cat_comida: { name: "Nourriture", sub: "Restaurants" },
-        cat_ocio: { name: "Loisir", sub: "Boutiques et achats" },
-        cat_salida: { name: "Sortie", sub: "Sortie principale" },
-        wordGate: "Porte",
-        sub_embarque: "Embarquement",
-        sub_embarqueVip: "Embarquement VIP"
     }
 };
 
-// MOCK DATA (JSON de prueba) preparados para futura API
+// Datos base para iconos y estructura de categorías [cite: 392, 459]
 const MOCK_CATEGORIES = [
     {
         id: 'puertas',
-        name: 'Puerta 1-21',
-        subtitle: 'Vuelos internacionales',
         svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6 0 .1 0 .3.1.4l5.3 4.3L5 15H2l1.5 3.5L7 22v-3l3.5-4.1 4.3 5.3c.1.1.3.2.4.1.4-.2.7-.6.6-1.1z"/></svg>',
-        time: '3 min',
-        dist: '350m'
+        time: '3 min', dist: '350m'
     },
     {
         id: 'comida',
-        name: 'Comida',
-        subtitle: 'Restaurantes',
-        svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 10-2-2 2-2 2 2z"/><path d="m12 14-2-2 2-2 2 2z"/><path d="m6 18-2-2 2-2 2 2z"/><path d="m3 21 8-8"/><path d="m21 3-8 8"/></svg>', // Fork/Knife simple path replacement
-        time: '2 min',
-        dist: '280m'
+        svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 10-2-2 2-2 2 2z"/><path d="m12 14-2-2 2-2 2 2z"/><path d="m6 18-2-2 2-2 2 2z"/><path d="m3 21 8-8"/><path d="m21 3-8 8"/></svg>', 
+        time: '2 min', dist: '280m'
     },
     {
         id: 'ocio',
-        name: 'Ocio',
-        subtitle: 'Tiendas y compras',
         svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-        time: '4 min',
-        dist: '420m'
+        time: '4 min', dist: '420m'
     },
     {
         id: 'salida',
-        name: 'Salida',
-        subtitle: 'Salida principal',
         svgIcon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
-        time: '2 min',
-        dist: '180m'
+        time: '2 min', dist: '180m'
     }
 ];
 
-let MOCK_DESTINATIONS = {};
-
-// Reusable card renderer
+// Generador de tarjetas dinámicas
 function renderCards(gridId, items, onClickCallback) {
     const grid = document.getElementById(gridId);
     if (!grid) return;
@@ -131,7 +88,7 @@ function renderCards(gridId, items, onClickCallback) {
         card.innerHTML = `
             <div class="active-indicator"></div>
             <div class="card-top">
-                <div class="card-icon">${item.svgIcon}</div>
+                <div class="card-icon">${item.svgIcon || ''}</div>
             </div>
             <h3 class="card-title">${item.name}</h3>
             <p class="card-subtitle">${item.subtitle}</p>
@@ -147,63 +104,45 @@ function renderCards(gridId, items, onClickCallback) {
                 </div>
             </div>
         `;
-
         card.addEventListener('click', () => onClickCallback(card, item));
         grid.appendChild(card);
     });
 }
 
-// Lógica de validación de idioma
 function applyLanguage() {
     const lang = localStorage.getItem('lang') || 'es';
     const t = UI_TRANSLATIONS[lang] || UI_TRANSLATIONS['es'];
     
-    // Asignación de textos estáticos si los elementos existen
-    const titleText = document.getElementById('title-text');
-    const subtitleText = document.getElementById('subtitle-text');
-    if (titleText && subtitleText) {
-        // Diferenciamos por si estamos en categorías o subcategorías mediante id en html o si existe 'destinations-grid'
-        if (document.getElementById('categories-grid')) {
-            titleText.textContent = t.titleCat;
-            subtitleText.textContent = t.subtitleCat;
-        } else {
-            titleText.textContent = t.titleSub;
-            subtitleText.textContent = t.subtitleSub;
-        }
+    const elements = {
+        'title-text': t.titleCat,
+        'subtitle-text': t.subtitleCat,
+        'summary-label': t.summaryDest,
+        'summary-dist-label': t.dist,
+        'summary-time-label': t.time,
+        'navigation-text': t.navigating
+    };
+
+    for (let id in elements) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = elements[id];
     }
-    
-    const summaryLabel = document.getElementById('summary-label');
-    if (summaryLabel) summaryLabel.textContent = t.summaryDest;
-
-    const summaryDistLabel = document.getElementById('summary-dist-label');
-    if (summaryDistLabel) summaryDistLabel.textContent = t.dist;
-
-    const summaryTimeLabel = document.getElementById('summary-time-label');
-    if (summaryTimeLabel) summaryTimeLabel.textContent = t.time;
 
     const continueBtn = document.getElementById('continue-btn');
-    if (continueBtn) {
-        // Encontrar el span dentro del botón para cambiar su texto, conservando el icono SVG
-        const span = continueBtn.querySelector('span');
-        if (span) span.textContent = t.btnContinue;
+    if (continueBtn && continueBtn.querySelector('span')) {
+        continueBtn.querySelector('span').textContent = t.btnContinue;
     }
 
-    const navigationText = document.getElementById('navigation-text');
-    if (navigationText) navigationText.textContent = t.navigating;
-
-    return t; // Para usar en los Mocks dinámicamente
+    return t;
 }
 
 // ------------------------------------
-// Inicialización página principal
+// Vista de Categorías (index / destination)
 // ------------------------------------
 function initCategoriesView() {
     const t = applyLanguage();
-
     const gridId = 'categories-grid';
     if (!document.getElementById(gridId)) return;
 
-    // Traducir las categorías Mock al vuelo
     const translatedCategories = MOCK_CATEGORIES.map(cat => ({
         ...cat,
         name: t[`cat_${cat.id}`].name,
@@ -211,135 +150,158 @@ function initCategoriesView() {
     }));
 
     renderCards(gridId, translatedCategories, (card, item) => {
-        // Redirigir a subcategoría
         window.location.href = `subcategory.html?cat=${item.id}`;
     });
 }
 
 // ------------------------------------
-// Inicialización subpágina de destinos
+// Vista de Subcategorías (Selección unificada con API) [cite: 443, 445, 467]
 // ------------------------------------
 async function initSubcategoryView() {
     const t = applyLanguage();
-
-    try {
-        const res = await fetch('/api/destinos');
-        const data = await res.json();
-        if (data.success) {
-            MOCK_DESTINATIONS = data.data.destinations;
-            
-            // Add SVG icons to loaded destinations based on category
-            const categoryData = MOCK_CATEGORIES.reduce((acc, cat) => {
-                acc[cat.id] = cat.svgIcon;
-                return acc;
-            }, {});
-            
-            for (let c in MOCK_DESTINATIONS) {
-                MOCK_DESTINATIONS[c].forEach(d => {
-                    if (!d.svgIcon) d.svgIcon = categoryData[c] || categoryData['puertas'];
-                });
-            }
-        }
-    } catch (e) {
-        console.error("Error fetching /api/destinos", e);
-    }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    let cat = urlParams.get('cat');
-    
-    // Fallback por si entran directo sin categoría válida
-    if (!cat || !MOCK_DESTINATIONS[cat]) {
-        cat = 'puertas';
-    }
-
-    // Traducir dinámicamente según key hardcodeada para demostración
-    const items = MOCK_DESTINATIONS[cat].map(dest => {
-        let subTr = dest.subtitle;
-        let nameTr = dest.name;
-        
-        if(dest.subtitle === 'Embarque') subTr = t.sub_embarque;
-        if(dest.subtitle === 'Embarque VIP') subTr = t.sub_embarqueVip;
-
-        if(nameTr.includes('Puerta')) {
-            nameTr = nameTr.replace('Puerta', t.wordGate);
-        }
-
-        return { ...dest, name: nameTr, subtitle: subTr };
-    });
-
-    const gridId = 'destinations-grid';
-    if (!document.getElementById(gridId)) return;
-
     let selectedDestination = null;
 
-    renderCards(gridId, items, (cardElement, itemData) => {
-        // Deseleccionar todas
-        document.querySelectorAll('.dest-card').forEach(c => c.classList.remove('active'));
-        // Seleccionar esta
-        cardElement.classList.add('active');
-        selectedDestination = itemData;
+    try {
+        // Obtener destinos reales de la API [cite: 445]
+        const res = await fetch('/api/destinos');
+        const data = await res.json();
+        
+        if (data.success) {
+            const urlParams = new URLSearchParams(window.location.search);
+            let cat = urlParams.get('cat') || 'puertas';
+            
+            // Asignar iconos de MOCK a los datos de la DB para la visualización
+            const categoryIcons = MOCK_CATEGORIES.reduce((acc, c) => ({...acc, [c.id]: c.svgIcon}), {});
+            const items = (data.data.destinations[cat] || []).map(d => ({
+                ...d,
+                svgIcon: categoryIcons[cat] || categoryIcons['puertas']
+            }));
 
-        // Mostrar resumen
-        const summaryBar = document.getElementById('summary-bar');
-        document.getElementById('summary-dest-name').textContent = itemData.name;
-        document.getElementById('summary-dest-dist').textContent = itemData.dist;
-        document.getElementById('summary-dest-time').textContent = itemData.time;
-        summaryBar.classList.remove('hidden');
+            renderCards('destinations-grid', items, (cardElement, itemData) => {
+                document.querySelectorAll('.dest-card').forEach(c => c.classList.remove('active'));
+                cardElement.classList.add('active');
+                selectedDestination = itemData;
 
-        // Habilitar botón continuar
-        const continueBtn = document.getElementById('continue-btn');
-        continueBtn.disabled = false;
-    });
-
-    // Evento a botón volver
-    const backBtn = document.getElementById('back-btn');
-    if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            window.location.href = 'destination.html';
-        });
+                document.getElementById('summary-dest-name').textContent = itemData.name;
+                document.getElementById('summary-dest-dist').textContent = itemData.dist;
+                document.getElementById('summary-dest-time').textContent = itemData.time;
+                document.getElementById('summary-bar').classList.remove('hidden');
+                document.getElementById('continue-btn').disabled = false;
+            });
+        }
+    } catch (e) {
+        console.error("Error cargando destinos:", e);
     }
 
-    // Integración MOCK con ROS2
+    // Lógica de envío de objetivo (Punto A a Punto B) [cite: 158, 445, 468, 469]
     const continueBtn = document.getElementById('continue-btn');
     if (continueBtn) {
         continueBtn.addEventListener('click', async () => {
             if (!selectedDestination) return;
 
-            // Simulación del endpoint de backend
-            console.log(`[ROS2 Integration] Enviando destino al backend... Destino: ${selectedDestination.name}`);
-            
-            // Simular fetch
             try {
-                // mock delay
-                const span = document.getElementById('continue-btn').querySelector('span');
-                if(span) span.textContent = t.btnSending;
+                continueBtn.querySelector('span').textContent = t.btnSending;
                 
-                await new Promise(resolve => setTimeout(resolve, 800));
+                const response = await fetch('/api/sendGoal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ zonaId: selectedDestination.id })
+                });
 
-                /* 
-                 * En un entorno real se haría:
-                 * await fetch('/api/navigate', {
-                 *    method: 'POST',
-                 *    headers: {'Content-Type': 'application/json'},
-                 *    body: JSON.stringify({ destination_id: selectedDestination.id })
-                 * });
-                 */
-                
-                // Mostrar overlay
-                const overlay = document.getElementById('navigation-overlay');
-                overlay.classList.add('active');
-                
-                // Redirigir a inicio u ocultar después de un rato (simulación)
-                setTimeout(() => {
-                    overlay.classList.remove('active');
-                    alert(`Navegación simulada hacia ${selectedDestination.name} iniciada correctamente (ROS2)`);
-                    window.location.href = '../index.html'; // Volver al menú principal raíz temporalmente
-                }, 2500);
+                const result = await response.json();
 
+                if (result.success) {
+                    sessionStorage.setItem('currentDestinationName', selectedDestination.name);
+                    // Guardamos el ID real de la base de datos
+                    sessionStorage.setItem('currentDestinationId', selectedDestination.id);
+                    const overlay = document.getElementById('navigation-overlay');
+                    if(overlay) overlay.classList.add('active');
+                    
+                    setTimeout(() => {
+                        window.location.href = '../nav_en_curso/navigation.html'; 
+                    }, 2000);
+                }
             } catch (error) {
-                console.error('Error al iniciar la navegación ROS2', error);
-                alert('No se pudo establecer conexión con el robot.');
+                console.error('Error iniciando navegación:', error);
             }
         });
     }
+}
+
+// ------------------------------------
+// Navegación en Curso (T09) [cite: 471, 472, 473]
+// ------------------------------------
+function initNavigationView() {
+    const t = applyLanguage();
+
+    const setText = (id, text) => { if(document.getElementById(id)) document.getElementById(id).textContent = text; };
+    setText('nav-title-text', t.navTitle);
+    setText('nav-subtitle-text', t.navSubtitle);
+    setText('nav-live-text', t.liveData);
+    setText('label-dist', t.navDistLeft);
+    setText('label-time', t.navEta);
+    setText('label-prog', t.navProg);
+    setText('nav-warning-text', t.navWarning);
+    setText('nav-destination-name', sessionStorage.getItem('currentDestinationName') || "Destino");
+    // Guardar el momento en el que empieza el viaje
+    const startTime = Date.now();
+
+    const progressInterval = setInterval(async () => {
+        try {
+            const response = await fetch('/api/navigation/status');
+            const data = await response.json();
+
+            if (!data.active) return;
+
+            // Actualización visual de progreso y telemetría [cite: 273, 473]
+            const trackFill = document.getElementById('track-fill');
+            const robotMarker = document.getElementById('robot-marker');
+            if(trackFill) trackFill.style.width = `${data.progress}%`;
+            if(robotMarker) robotMarker.style.left = `${data.progress}%`;
+
+            setText('nav-percentage', `${data.progress}%`);
+            setText('nav-speed', `${data.speed.toFixed(1)} m/s`);
+            setText('nav-dist', `${data.distance_remaining.toFixed(1)} m`);
+
+            const eta = document.getElementById('nav-eta');
+            if (eta && data.eta_seconds > 0) {
+                const mins = Math.floor(data.eta_seconds / 60);
+                const secs = Math.floor(data.eta_seconds % 60);
+                eta.innerText = `${mins}:${secs.toString().padStart(2, '0')} min`;
+            }
+
+            // Trigger de llegada automática [cite: 477]
+            if (data.arrived) {
+                clearInterval(progressInterval);
+                // Calcular duración real del viaje en segundos
+                const durationSecs = Math.floor((Date.now() - startTime) / 1000);
+                const destId = sessionStorage.getItem('currentDestinationId');
+
+                // 1. Guardar la interacción hasta la duración (Valoración nula de momento)
+                const res = await fetch('/api/interaccion/llegada', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        robotId: 1, // Suponiendo el Robot 1
+                        zonaActualId: 1, // Simulando que sale del inicio
+                        zonaDestinoId: destId,
+                        duracion: durationSecs
+                    })
+                });
+
+                const resData = await res.json();
+                
+                // 2. Guardamos el ID que nos da la BD para usarlo en la pantalla final
+                if (resData.success) {
+                    sessionStorage.setItem('currentInteraccionId', resData.id);
+                }
+
+                // 3. Saltar a la pantalla de valoración con la ruta correcta
+                window.location.href = '../llegada_y_valoracion/llegada.html';
+                window.location.href = 'llegada.html'; 
+            }
+        } catch (error) {
+            console.error("Error en telemetría:", error);
+        }
+    }, 500);
 }
