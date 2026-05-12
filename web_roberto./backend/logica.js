@@ -287,6 +287,39 @@ async function updateInteraccion(interaccionId, valoracion, comentario) {
     await pool.query(query, [valoracion, comentario, interaccionId]);
 }
 
+/**
+ * Obtiene todos los eventos con el nombre del robot y su estado.
+ */
+async function getEventosConEstado() {
+    const query = `
+        SELECT e.*, r.Nombre AS RobotNombre 
+        FROM Evento e
+        JOIN Robot r ON e.RobotID = r.RobotID
+        ORDER BY e.FechaHora DESC
+    `;
+    const [rows] = await pool.query(query);
+    return rows;
+}
+
+/**
+ * Resuelve una incidencia: Actualiza el Evento directamente sin usar tablas extra (Prototipo).
+ * Añade la nota del técnico al final del mensaje original.
+ */
+async function resolverEvento(eventoId, tecnicoId, accion) {
+    // Texto que se añadirá al mensaje existente en la base de datos
+    const notaResolucion = `\n\n[Resuelto por Técnico ${tecnicoId}]: ${accion}`;
+
+    const query = `
+        UPDATE Evento 
+        SET Estado = 'Cerrado', 
+            CerradaEn = NOW(),
+            Mensaje = CONCAT(Mensaje, ?)
+        WHERE EventoID = ?
+    `;
+    
+    await pool.query(query, [notaResolucion, eventoId]);
+}
+
 module.exports = {
     pool,
     getZonas,
@@ -301,5 +334,7 @@ module.exports = {
     getInteracciones,
     getRobotNames,
     getZonaNames,
-    updateInteraccion
+    updateInteraccion,
+    getEventosConEstado,
+    resolverEvento      
 };

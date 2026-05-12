@@ -535,4 +535,90 @@ document.addEventListener('DOMContentLoaded', () => {
     updateHistoryUI(); // Carga los datos de la tabla
 });
 
+/* --- LÓGICA DE INCIDENCIAS --- */
+let todasLasIncidencias = [];
+let estadoFiltroIncidencias = 'Abierto'; // <-- Cambiado a Abierto
+
+window.toggleIncidenciasPanel = () => {
+    const panel = document.getElementById('panel-incidencias');
+    panel.classList.toggle('open');
+    if(panel.classList.contains('open')) actualizarIncidencias();
+};
+
+window.filtrarIncidencias = (estado) => {
+    estadoFiltroIncidencias = estado;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes(estado)));
+    renderizarIncidencias();
+};
+
+async function actualizarIncidencias() {
+    try {
+        const res = await fetch('/api/eventos');
+        const data = await res.json();
+        
+        // Control de errores de API
+        if (!Array.isArray(data)) {
+            console.error("Error de la API:", data);
+            document.getElementById('lista-incidencias').innerHTML = '<p style="text-align:center; color:red;">Error de base de datos.</p>';
+            return;
+        }
+
+        todasLasIncidencias = data;
+        
+        const abiertas = todasLasIncidencias.filter(i => i.Estado === 'Abierto').length;
+        const badge = document.getElementById('badge-incidencias');
+        if (badge) {
+            badge.innerText = abiertas;
+            badge.style.display = abiertas > 0 ? 'block' : 'none';
+        }
+        
+        renderizarIncidencias();
+    } catch (err) {
+        console.error("Error al hacer fetch:", err);
+        document.getElementById('lista-incidencias').innerHTML = '<p style="text-align:center; color:red;">Error de conexión.</p>';
+    }
+}
+
+function renderizarIncidencias() {
+    const lista = document.getElementById('lista-incidencias');
+    const filtradas = todasLasIncidencias.filter(i => i.Estado === estadoFiltroIncidencias);
+    
+    lista.innerHTML = filtradas.map(inc => `
+        <div class="incidencia-card ${(inc.Severidad && inc.Severidad.includes('Error')) ? 'severidad-alta' : ''} ${inc.Estado === 'Cerrado' ? 'resuelta' : ''}">
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px;">
+                <strong>${inc.RobotNombre || 'Robot ' + inc.RobotID}</strong>
+                <span style="color:gray">${new Date(inc.FechaHora).toLocaleString()}</span>
+            </div>
+            <div style="font-weight:600; font-size:0.9rem;">${inc.TipoEvento}</div>
+            
+            <p style="font-size:0.85rem; margin:5px 0;">${inc.Mensaje}</p> 
+            
+            ${inc.Estado === 'Abierto' ? `
+                <button class="btn-resolver" style="background:#eee; color:#333;" onclick="document.getElementById('f-${inc.EventoID}').style.display='block'; this.style.display='none'">Resolver</button>
+                <div id="f-${inc.EventoID}" class="resolver-form">
+                    <textarea id="t-${inc.EventoID}" placeholder="Acción realizada..."></textarea>
+                    <button class="btn-resolver" onclick="confirmarResolucion(${inc.EventoID})">Confirmar</button>
+                </div>
+            ` : `
+               <div style="font-size:0.8rem; color:#10b981; margin-top:5px;"><i class="ph ph-check-circle"></i> Cerrado el: ${new Date(inc.CerradaEn).toLocaleString()}</div>
+            `}
+        </div>
+    `).join('') || '<p style="text-align:center; color:gray;">No hay incidencias.</p>';
+}
+
+window.confirmarResolucion = async (id) => {
+    const accion = document.getElementById(`t-${id}`).value;
+    if(!accion) return alert("Describe la acción");
+    
+    await fetch('/api/eventos/resolver', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ eventoId: id, accion })
+    });
+    actualizarIncidencias();
+};
+
+// Polling suave para el badge
+setInterval(actualizarIncidencias, 10000);
+
 /* --- HISTORIAL FUNCIONAL END --- */
