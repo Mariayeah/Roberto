@@ -1,3 +1,10 @@
+"""
+Autor: Chris
+Descripción: Servidor de Streaming de Vídeo. 
+Este script actúa como un puente (Bridge) que recibe imágenes de ROS 2, 
+las convierte a formato JPEG y las sirve a través de un servidor Flask 
+para que puedan verse en cualquier navegador web.
+"""
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -15,7 +22,16 @@ bridge = CvBridge()
 camera_node = None
 
 class CameraSubscriber(Node):
+    """
+    Nodo de ROS 2 que se suscribe al tópico de la cámara.
+    
+    Mantiene en memoria el último frame recibido para que el servidor 
+    web pueda consultarlo en cualquier momento.
+    """
     def __init__(self):
+        """
+        Inicializa el nodo y el suscriptor al flujo de imagen cruda.
+        """
         super().__init__('camera_subscriber')
         self.subscription = self.create_subscription(
             Image,
@@ -25,10 +41,24 @@ class CameraSubscriber(Node):
         self.current_frame = None
 
     def listener_callback(self, data):
-        # Transforma la imagen de ROS a un formato que Python/OpenCV entiende
+        """
+        Transforma la imagen de ROS a un formato compatible con OpenCV (BGR8).
+        
+        Args:
+            data (sensor_msgs.msg.Image): Datos de la imagen de ROS.
+        """
         self.current_frame = bridge.imgmsg_to_cv2(data, "bgr8")
 
 def generate_frames():
+    """
+    Generador de frames para el streaming HTTP.
+    
+    Codifica el frame actual de OpenCV a JPEG de forma continua para 
+    crear un flujo de video (MJPEG).
+    
+    Yields:
+        bytes: Frame codificado en formato multipart/x-mixed-replace.
+    """
     global camera_node
     while True:
         if camera_node is not None and camera_node.current_frame is not None:
@@ -44,11 +74,23 @@ def generate_frames():
 
 @app.route('/video_feed')
 def video_feed():
+    """
+    Ruta de Flask que sirve el flujo de video.
+    
+    Returns:
+        Response: Respuesta HTTP con el tipo de contenido multipart.
+    """
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # --- NUEVA FUNCIÓN: Mantiene a ROS 2 vivo en el fondo ---
 def ros2_spin_thread():
+    """
+    Función encargada de mantener vivo el proceso de ROS 2.
+    
+    Se ejecuta en un hilo separado para que rclpy.spin() no bloquee 
+    la ejecución del servidor Flask.
+    """
     global camera_node
     rclpy.init()
     camera_node = CameraSubscriber()
@@ -57,6 +99,10 @@ def ros2_spin_thread():
     rclpy.shutdown()
 
 def main(args=None):
+    """
+    Punto de entrada principal. 
+    Inicia el hilo de ROS 2 y arranca el servidor web de Flask.
+    """
     # 1. Arrancamos ROS 2 en un "hilo" invisible
     ros_thread = threading.Thread(target=ros2_spin_thread, daemon=True)
     ros_thread.start()

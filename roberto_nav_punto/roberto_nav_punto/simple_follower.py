@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+
+"""
+Autor: Mery
+Descripción: Nodo de seguimiento de objetivos (Goal Follower). 
+Calcula la velocidad necesaria para que el robot se desplace desde su 
+posición actual (AMCL) hasta el destino marcado en la web.
+"""
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
@@ -6,7 +13,17 @@ from geometry_msgs.msg import TwistStamped, PoseWithCovarianceStamped, PoseStamp
 import math
 
 class WebGoalFollower(Node):
+    """
+    Nodo encargado de la navegación reactiva.
+    
+    Escucha la posición del robot y el objetivo deseado, calculando errores 
+    de distancia y ángulo para publicar comandos de velocidad (TwistStamped).
+    """
     def __init__(self):
+        """
+        Inicializa el nodo, configura QoS para compatibilidad con Jazzy 
+        y define suscriptores, publicadores y el bucle de control.
+        """
         super().__init__('web_goal_follower')
 
         # --- QoS Profile for AMCL Compatibility ---
@@ -47,7 +64,13 @@ class WebGoalFollower(Node):
         self.get_logger().info('🚀 Web Goal Follower (TwistStamped + BestEffort QoS) Started')
 
     def pose_callback(self, msg):
-        """ Receive current position and orientation from AMCL """
+        """ 
+        Recibe la posición y orientación actual desde AMCL.
+        Convierte los cuaterniones a ángulo Euler (Yaw) para facilitar los cálculos.
+
+        Args:
+            msg (PoseWithCovarianceStamped): Mensaje de pose con covarianza.
+        """
         if self.current_pos is None:
             self.get_logger().info('✅ First position received! Robot is now localized.')
         
@@ -60,11 +83,20 @@ class WebGoalFollower(Node):
         self.current_yaw = math.atan2(siny_cosp, cosy_cosp)
 
     def goal_callback(self, msg):
-        """ Receive destination from the Web Interface """
+        """ 
+        Recibe el destino seleccionado desde la interfaz Web de Roberto.
+
+        Args:
+            msg (PoseStamped): Posición objetivo en el mapa.
+        """
         self.goal_pos = msg.pose.position
         self.get_logger().info(f'🎯 New Web Goal: x={self.goal_pos.x:.2f}, y={self.goal_pos.y:.2f}')
 
     def control_loop(self):
+        """
+        Bucle de control principal (P-Controller).
+        Calcula la distancia y el ángulo hacia el objetivo y publica /cmd_vel.
+        """
         # 1. Check if we have both position and a destination
         if self.current_pos is None:
             self.get_logger().info('Waiting for /amcl_pose... (Check QoS or Initial Pose)', throttle_duration_sec=5.0)
@@ -112,6 +144,9 @@ class WebGoalFollower(Node):
             self.goal_pos = None
 
 def main(args=None):
+    """
+    Punto de entrada para ejecutar el seguidor de objetivos.
+    """
     rclpy.init(args=args)
     node = WebGoalFollower()
     try:
