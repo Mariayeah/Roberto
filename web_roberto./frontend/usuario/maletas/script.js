@@ -41,10 +41,10 @@ const navTopic = new ROSLIB.Topic({
 
 /**
  * Cancela el proceso actual de preparación.
- * Redirige al usuario a la pantalla de selección de destino.
+ * Redirige al usuario a la pantalla de selección de idioma.
  */
 function cancelAction() {
-    window.location.href = "destination.html";
+    window.location.href = "../index.html";
 }
 
 
@@ -71,6 +71,6 @@ function continueAction() {
 
     console.log("Navegación confirmada enviada a ROS");
 
-    // Redirección a la pantalla de navegación
-    window.location.href = "navigation.html";
+    // Redirección a la pantalla de destino
+    window.location.href = "../seleccion_destino/destination.html";
 }
