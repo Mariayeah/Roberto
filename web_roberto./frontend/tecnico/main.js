@@ -231,6 +231,7 @@ async function loadZonas() {
 
 loadZonas();
 
+//login
 document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch('/api/dashboard', {
         credentials: 'include'
@@ -239,4 +240,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!res.ok) {
         window.location.href = '/tecnico/login/login.html';
     }
+});
+
+// Logout
+document.getElementById("confirmLogout").addEventListener("click", async () => {
+    try {
+        await fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (err) {
+        console.warn(err);
+    }
+
+    window.location.href = '/usuario/index.html';
 });
