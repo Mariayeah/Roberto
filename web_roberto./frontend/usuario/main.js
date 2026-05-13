@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Redirección al siguiente menú
     startBtn.addEventListener('click', () => {
-        window.location.href = 'seleccion_destino/destination.html';
+        window.location.href = 'maletas/maletas.html';
     });
 
     // Botón Técnico Oculto
