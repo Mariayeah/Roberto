@@ -13,6 +13,8 @@
 
 Este proyecto utiliza **ROS 2** (Robot Operating System 2) para crear un robot guía para aeropuertos. El proyecto implementa nodos, mensajes y servicios de ROS 2 para navegación, visión artificial, reconocimiento y control por web.
 
+Autores: Maria Algora, Meryame Ait Boumlik, Christopher Yoris
+
 ## Requisitos
 
 * **Sistema operativo:** Ubuntu 24.04 LTS (recomendado)
@@ -46,25 +48,24 @@ Este proyecto utiliza **ROS 2** (Robot Operating System 2) para crear un robot g
 ## Uso
 
 1. **Iniciar ROS 2:**
-
+   
     ros2 launch nombre_proyecto nombre_launch_file.launch.py
 
 2. **Ejecutar nodos manualmente:**
-
+   
     ros2 run nombre_paquete nombre_nodo
 
 3. **Herramientas de diagnóstico:**
-  
 * **Listar tópicos activos:**
-
+  
     ros2 topic list
 
 * **Escuchar un tópico:**
-
+  
     ros2 topic echo /nombre_topico
 
 * **Listar nodos:**
-
+  
     ros2 node list
 
 ## Estructura del Proyecto
@@ -123,3 +124,4 @@ project(roberto)
 
 find_package(ament_cmake REQUIRED)
 ament_package()
+```
