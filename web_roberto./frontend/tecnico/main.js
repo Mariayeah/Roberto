@@ -261,16 +261,31 @@ async function loadZonas() {
 
 loadZonas();
 
-// --- COMENTADO TEMPORALMENTE PARA BYPASSEAR EL LOGIN ---
+//login
 document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch('/api/dashboard', {
         credentials: 'include'
     });
 
     if (!res.ok) {
-        //window.location.href = '/tecnico/login/login.html';
+        window.location.href = '/tecnico/login/login.html';
     }
 });
+
+// Logout
+document.getElementById("confirmLogout").addEventListener("click", async () => {
+    try {
+        await fetch('/api/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (err) {
+        console.warn(err);
+    }
+
+    window.location.href = '/usuario/index.html';
+});
+
 
 //------------------------------------------------------- */
 

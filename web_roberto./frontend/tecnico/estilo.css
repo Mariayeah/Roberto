@@ -166,7 +166,7 @@ body {
     margin-bottom: 10px;
 }
 
-/* --- Map Section (Your Work Area) --- */
+/* --- Map Section --- */
 .map-section {
     grid-column: 1;
     min-height: 450px;
@@ -755,3 +755,18 @@ tr:hover td {
 .btn-resolver { background: var(--accent-blue); color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: 600; }
 
 /* ####################################################### */
+
+/* Logout */
+
+/* Card */
+.card-custom {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+/* Bootstrap fix */
+.btn {
+    font-family: inherit;
+}
