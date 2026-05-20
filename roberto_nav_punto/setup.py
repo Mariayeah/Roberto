@@ -13,6 +13,8 @@ setup(
         ['resource/' + package_name]),
     ('share/' + package_name, ['package.xml']),
     (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
+    (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
+    (os.path.join('share', package_name, 'rviz'), glob('rviz/*.rviz')),
 ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -27,6 +29,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'simple_follower.py = roberto_nav_punto.simple_follower:main',
+            'vision_server = roberto_nav_punto.vision_server:main',
         ],
     },
 )
