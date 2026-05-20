@@ -52,7 +52,7 @@ def generate_launch_description():
             executable='map_server',
             name='map_server',
             output='screen',
-            parameters=[{'yaml_filename': map_file, 'use_sim_time': True}]
+            parameters=[{'yaml_filename': map_file, 'use_sim_time': False}]
         ),
 
         # AMCL
@@ -63,7 +63,7 @@ def generate_launch_description():
             executable='amcl',
             name='amcl',
             output='screen',
-            parameters=[amcl_config, {'use_sim_time': True}]
+            parameters=[amcl_config, {'use_sim_time': False}]
         ),
 
         # Lifecycle Manager 
@@ -75,7 +75,7 @@ def generate_launch_description():
             name='lifecycle_manager_localization',
             output='screen',
             parameters=[{
-                'use_sim_time': True,
+                'use_sim_time': False,
                 'autostart': True,
                 'node_names': ['map_server', 'amcl']
             }]
@@ -88,7 +88,7 @@ def generate_launch_description():
             executable='simple_follower.py',
             name='simple_follower',
             output='screen',
-            parameters=[{'use_sim_time': True}]
+            parameters=[{'use_sim_time': False}]
         ),
 
         # --- NODO NUEVO: Servidor de Visión (Cámara para Dashboard) ---
@@ -109,6 +109,6 @@ def generate_launch_description():
             name='rviz2',
             arguments=['-d', rviz_config],
             condition=IfCondition(LaunchConfiguration('use_rviz')),
-            parameters=[{'use_sim_time': True}]
+            parameters=[{'use_sim_time': False}]
         )
     ])
