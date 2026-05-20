@@ -9,15 +9,13 @@ from math import sin, cos
 Nodo ROS2 para navegación autónoma usando la acción FollowWaypoints de Nav2.
 
 Este nodo:
-- Establece automáticamente la posición inicial del robot en el mapa
-- Espera a que AMCL se estabilice
+- [Modificado para HW: La posición inicial se debe dar en RViz2]
 - Envía una secuencia de waypoints al servidor /follow_waypoints
 - Maneja reintentos automáticos si el goal es rechazado
 - Muestra feedback en tiempo real del progreso
 - Permanece activo hasta interrupción manual (Ctrl+C)
 
 Parámetros configurables:
-- initial_x, initial_y, initial_theta: Posición inicial (por defecto 0.0)
 - waypoints: Lista de [x,y,theta] para cada waypoint
 
 Autor: Maria Algora
@@ -27,8 +25,7 @@ class FollowWaypointsNode(Node):
     """
     Nodo principal para seguir waypoints usando Nav2.
     
-    Inicializa el cliente de acción /follow_waypoints, publica la pose inicial
-    y envía los waypoints.
+    Inicializa el cliente de acción /follow_waypoints y envía los waypoints.
     """
     
     def __init__(self):
@@ -36,8 +33,7 @@ class FollowWaypointsNode(Node):
         Inicializa el nodo y configura todos los componentes necesarios.
         
         - Crea cliente de acción para /follow_waypoints
-        - Configura publicador para /initialpose
-        - Lee parámetros de posición inicial y waypoints
+        - Lee parámetros de waypoints
         - Configura timers para secuencia de inicialización automática
         - Muestra información detallada de configuración
         """
@@ -46,18 +42,6 @@ class FollowWaypointsNode(Node):
         # Cliente de acción
         self.action_client = ActionClient(self, FollowWaypoints, '/follow_waypoints')
         
-        # Publicador para posición inicial
-        self.initial_pose_pub = self.create_publisher(
-            PoseWithCovarianceStamped,
-            '/initialpose',
-            10
-        )
-        
-        # Parámetros
-        self.declare_parameter('initial_x', 0.0)
-        self.declare_parameter('initial_y', 0.0)
-        self.declare_parameter('initial_theta', 0.0)
-        
         # Waypoints
         self.declare_parameter('waypoints', [
             0.5, 0.0, 0.0,
@@ -65,10 +49,6 @@ class FollowWaypointsNode(Node):
             0.5, 0.0, 0.0,
             0.0, 0.0, 0.0,
         ])
-        
-        self.initial_x = self.get_parameter('initial_x').value
-        self.initial_y = self.get_parameter('initial_y').value
-        self.initial_theta = self.get_parameter('initial_theta').value
         
         # Procesar waypoints
         waypoints_param = self.get_parameter('waypoints').value
@@ -82,58 +62,19 @@ class FollowWaypointsNode(Node):
         
         # Control de estado
         self.goal_sent = False
-        self.initial_pose_sent = False
         self.last_waypoint_reported = -1
         self.retry_count = 0
         self.max_retries = 3
         
         self.get_logger().info('=' * 50)
         self.get_logger().info('Nodo FollowWaypoints iniciado')
-        self.get_logger().info(f'Posición inicial: ({self.initial_x}, {self.initial_y})')
         self.get_logger().info(f'Número de waypoints: {len(self.waypoints)}')
         for i, wp in enumerate(self.waypoints):
             self.get_logger().info(f'  Waypoint {i+1}: ({wp[0]}, {wp[1]}) theta={wp[2]}')
         self.get_logger().info('=' * 50)
         
-        # Timer único para inicialización
-        self.init_timer = self.create_timer(15.0, self.set_initial_pose)
-    
-    def set_initial_pose(self):
-        """
-        Establece la posición inicial del robot una sola vez.
-        
-        Publica PoseWithCovarianceStamped en /initialpose con covarianza adecuada.
-        Cancela el timer de inicialización y programa el envío de waypoints.
-        """
-        if self.initial_pose_sent:
-            return
-        
-        self.initial_pose_sent = True
-        initial_pose = PoseWithCovarianceStamped()
-        initial_pose.header.frame_id = 'map'
-        initial_pose.header.stamp = self.get_clock().now().to_msg()
-        
-        initial_pose.pose.pose.position.x = self.initial_x
-        initial_pose.pose.pose.position.y = self.initial_y
-        initial_pose.pose.pose.position.z = 0.0
-        initial_pose.pose.pose.orientation.z = sin(self.initial_theta / 2.0)
-        initial_pose.pose.pose.orientation.w = cos(self.initial_theta / 2.0)
-        
-        initial_pose.pose.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.25, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.25]
-        
-        self.initial_pose_pub.publish(initial_pose)
-        self.get_logger().info('Posición inicial establecida')
-        
-        # Cancelar el timer de inicialización
-        self.init_timer.cancel()
-        
-        # Esperar más tiempo para que AMCL se estabilice
-        self.send_timer = self.create_timer(15.0, self.send_waypoints)
+        # Timer único para enviar los waypoints casi inmediatamente
+        self.send_timer = self.create_timer(0.5, self.send_waypoints)
     
     def send_waypoints(self):
         """
@@ -219,7 +160,10 @@ class FollowWaypointsNode(Node):
             try:
                 if hasattr(result, 'waypoints_reached'):
                     self.get_logger().info(f'Waypoints alcanzados: {result.waypoints_reached} de {len(self.waypoints)}')
-            except:
+                elif hasattr(result, 'missed_waypoints'):
+                    alcanzados = len(self.waypoints) - len(result.missed_waypoints)
+                    self.get_logger().info(f'Waypoints alcanzados: {alcanzados} de {len(self.waypoints)}')
+            except Exception:
                 pass
             
             self.get_logger().info('=' * 50)
@@ -245,7 +189,7 @@ class FollowWaypointsNode(Node):
                 self.get_logger().info(f'📍 Waypoint {current}/{total} completado')
         except AttributeError:
             pass
-        except Exception as e:
+        except Exception:
             pass
 
 def main():

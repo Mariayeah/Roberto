@@ -11,19 +11,17 @@ from math import sin, cos
 Nodo ROS2 para navegación directa a una pose específica usando Nav2.
 
 Este nodo:
-- Establece automáticamente la posición inicial del robot en el mapa
-- Espera estabilización de AMCL 
+- [Modificado para HW: La posición inicial se debe dar en RViz2]
 - Navega a una única pose objetivo especificada por parámetros
 - Implementa reintentos automáticos si el goal es rechazado
 - Muestra feedback de distancia restante en tiempo real
 - Permanece activo hasta Ctrl+C
 
 Parámetros configurables:
-- initial_x, initial_y, initial_theta: Posición INICIAL del robot
 - goal_x, goal_y, goal_theta: Pose OBJETIVO final
 
 Ejemplo:
-ros2 run mi_paquete navigate_to_pose --ros-args -p initial_x:=0.0 -p goal_x:=2.0 -p goal_y:=1.5 -p goal_theta:=1.57
+ros2 run mi_paquete navigate_to_pose --ros-args -p goal_x:=2.0 -p goal_y:=1.5 -p goal_theta:=1.57
 """
 
 class NavigateToPoseNode(Node):
@@ -33,89 +31,36 @@ class NavigateToPoseNode(Node):
     
     def __init__(self):
         """
-        Inicializa el nodo con cliente de acción, publicador de pose inicial
-        y parámetros configurables para posición inicial y objetivo.
+        Inicializa el nodo con cliente de acción y parámetros configurables para el objetivo.
         
-        Inicia secuencia temporal automática de 2s (pose) → 8s (estabilización) → navegación.
+        Inicia secuencia temporal automática para enviar el goal.
         """
         super().__init__('navigate_to_pose')
         
         # Cliente de acción
         self.action_client = ActionClient(self, NavigateToPose, '/navigate_to_pose')
         
-        # Publicador para posición inicial
-        self.initial_pose_pub = self.create_publisher(
-            PoseWithCovarianceStamped,
-            '/initialpose',
-            10
-        )
-        
         # Parámetros
         self.declare_parameter('goal_x', 0.5)
         self.declare_parameter('goal_y', 0.0)
         self.declare_parameter('goal_theta', 0.0)
-        self.declare_parameter('initial_x', 0.0)
-        self.declare_parameter('initial_y', 0.0)
-        self.declare_parameter('initial_theta', 0.0)
         
         self.goal_x = self.get_parameter('goal_x').value
         self.goal_y = self.get_parameter('goal_y').value
         self.goal_theta = self.get_parameter('goal_theta').value
-        self.initial_x = self.get_parameter('initial_x').value
-        self.initial_y = self.get_parameter('initial_y').value
-        self.initial_theta = self.get_parameter('initial_theta').value
         
         # Control de estado
         self.goal_sent = False
-        self.initial_pose_sent = False
         self.retry_count = 0
         self.max_retries = 3
         
         self.get_logger().info('=' * 50)
         self.get_logger().info('Nodo NavigateToPose iniciado')
-        self.get_logger().info(f'Posición inicial: ({self.initial_x}, {self.initial_y}) theta={self.initial_theta}')
         self.get_logger().info(f'Objetivo: ({self.goal_x}, {self.goal_y}) theta={self.goal_theta}')
         self.get_logger().info('=' * 50)
         
-        # Timer único para inicialización
-        self.init_timer = self.create_timer(2.0, self.set_initial_pose)
-    
-    def set_initial_pose(self):
-        """
-        Publica la posición inicial en /initialpose una sola vez.
-        
-        Usa covarianza optimizada para AMCL y programa envío del goal tras
-        8 segundos de estabilización de localización.
-        """
-        if self.initial_pose_sent:
-            return
-        
-        self.initial_pose_sent = True
-        initial_pose = PoseWithCovarianceStamped()
-        initial_pose.header.frame_id = 'map'
-        initial_pose.header.stamp = self.get_clock().now().to_msg()
-        
-        initial_pose.pose.pose.position.x = self.initial_x
-        initial_pose.pose.pose.position.y = self.initial_y
-        initial_pose.pose.pose.position.z = 0.0
-        initial_pose.pose.pose.orientation.z = sin(self.initial_theta / 2.0)
-        initial_pose.pose.pose.orientation.w = cos(self.initial_theta / 2.0)
-        
-        initial_pose.pose.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.25, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.25]
-        
-        self.initial_pose_pub.publish(initial_pose)
-        self.get_logger().info('Posición inicial establecida')
-        
-        # Cancelar el timer de inicialización
-        self.init_timer.cancel()
-        
-        # Esperar más tiempo para que AMCL se estabilice (8 segundos)
-        self.send_timer = self.create_timer(8.0, self.send_goal)
+        # Timer único para enviar el goal directamente (0.5s para asegurar que el nodo levantó)
+        self.send_timer = self.create_timer(0.5, self.send_goal)
     
     def send_goal(self):
         """
@@ -212,8 +157,10 @@ class NavigateToPoseNode(Node):
         try:
             feedback = feedback_msg.feedback
             self.get_logger().info(f'Distancia restante: {feedback.distance_remaining:.2f} m')
-        except:
+        except AttributeError:
             pass
+        except Exception as e:
+            self.get_logger().warn(f'Error al procesar feedback: {e}')
 
 
 def main():
