@@ -1,0 +1,27 @@
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: odom          # <-- CAMBIAR de 'map' a 'odom'
+      robot_base_frame: base_link
+      use_sim_time: false
+      robot_radius: 0.105
+      rolling_window: true        # <-- AÑADIR esta línea como true
+      width: 10                   # <-- AÑADIR un tamaño de ventana flotante (e.g. 10x10 metros)
+      height: 10                  # <-- AÑADIR
+      resolution: 0.05
+      plugins: ["obstacle_layer", "inflation_layer"] # <-- CAMBIAR "static_layer" por "obstacle_layer"
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          clearing: true
+          marking: true
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.30
