@@ -1,62 +1,97 @@
+# Copyright 2019 Open Source Robotics Foundation, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Darby Lim
+
 import os
+
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
+ROS_DISTRO = os.environ.get('ROS_DISTRO')
+
+
 def generate_launch_description():
-    # 1. Rutas locales de vuestro propio ecosistema
-    pkg_nav_ruta = get_package_share_directory('roberto_nav_ruta')
-    pkg_mundo = get_package_share_directory('roberto_mundo')
+    use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    map_dir = LaunchConfiguration(
+        'map',
+        default=os.path.join(
+            get_package_share_directory('roberto_mundo'),
+            'maps',
+            'mapadelmundo.yaml'
+        )
+    )
 
-    # Forzar el mapa del aeropuerto de roberto_mundo
-    map_file = os.path.join(pkg_mundo, 'maps', 'mapadelmundo.yaml')
-    
-    # Apuntar al nuevo archivo de parámetros que acabamos de crear arriba
-    param_file = os.path.join(pkg_nav_ruta, 'param', 'burger.yaml')
-    
-    # Usar el bringup oficial de Nav2 nativo del sistema operativo
-    nav2_launch_dir = os.path.join(get_package_share_directory('nav2_bringup'), 'launch')
+    param_file_name = TURTLEBOT3_MODEL + '.yaml'
+    if ROS_DISTRO == 'humble':
+        param_dir = LaunchConfiguration(
+            'params_file',
+            default=os.path.join(
+                get_package_share_directory('turtlebot3_navigation2'),
+                'param',
+                ROS_DISTRO,
+                param_file_name))
+    else:
+        param_dir = LaunchConfiguration(
+            'params_file',
+            default=os.path.join(
+                get_package_share_directory('turtlebot3_navigation2'),
+                'param',
+                param_file_name))
 
-    # Intentar cargar RViz personalizado si existe, si no, el por defecto
-    rviz_config_dir = os.path.join(pkg_nav_ruta, 'rviz', 'localization.rviz')
-    if not os.path.exists(rviz_config_dir):
-        rviz_config_dir = os.path.join(pkg_nav_ruta, 'rviz', 'tb3_navigation2.rviz')
+    nav2_launch_file_dir = os.path.join(get_package_share_directory('nav2_bringup'), 'launch')
+
+    rviz_config_dir = os.path.join(
+        get_package_share_directory('turtlebot3_navigation2'),
+        'rviz',
+        'tb3_navigation2.rviz')
 
     return LaunchDescription([
         DeclareLaunchArgument(
             'map',
-            default_value=map_file,
-            description='Ruta completa al archivo del mapa yaml'),
+            default_value=map_dir,
+            description='Full path to map file to load'),
 
         DeclareLaunchArgument(
             'params_file',
-            default_value=param_file,
-            description='Ruta completa al archivo de parametros optimizados'),
+            default_value=param_dir,
+            description='Full path to param file to load'),
 
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
-            description='Forzar tiempo real (false) para pruebas físicas'),
+            description='Use simulation (Gazebo) clock if true'),
 
-        # Lanzador oficial de Nav2 (Trae planner, controller, recoveries y servidores de acciones)
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([nav2_launch_dir, '/bringup_launch.py']),
+            PythonLaunchDescriptionSource([nav2_launch_file_dir, '/bringup_launch.py']),
             launch_arguments={
-                'map': map_file,
-                'use_sim_time': 'false',
-                'params_file': param_file
-            }.items(),
+                'map': map_dir,
+                'use_sim_time': use_sim_time,
+                'params_file': param_dir}.items(),
         ),
 
-        # Lanzar la interfaz de visualización RViz2
         Node(
             package='rviz2',
             executable='rviz2',
             name='rviz2',
             arguments=['-d', rviz_config_dir],
-            parameters=[{'use_sim_time': False}],
+            parameters=[{'use_sim_time': use_sim_time}],
             output='screen'),
     ])

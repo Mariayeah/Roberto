@@ -1,6 +1,6 @@
 amcl:
   ros__parameters:
-    use_sim_time: false
+    use_sim_time: True
     base_frame_id: "base_footprint"
     odom_frame_id: "odom"
     scan_topic: "/scan"
@@ -16,88 +16,3 @@ amcl:
     z_rand: 0.5
     sigma_hit: 0.2
     lambda_short: 0.1
-
-bt_navigator:
-  ros__parameters:
-    use_sim_time: false
-    global_frame: map
-    robot_base_frame: base_link
-    odom_frame: odom
-
-local_costmap:
-  local_costmap:
-    ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 2.0
-      global_frame: odom
-      robot_base_frame: base_link
-      use_sim_time: false
-      rolling_window: true
-      width: 3
-      height: 3
-      resolution: 0.05
-      robot_radius: 0.105
-      plugins: ["obstacle_layer", "inflation_layer"]
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: true
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: true
-          marking: true
-          data_type: "LaserScan"
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.30
-
-global_costmap:
-  global_costmap:
-    ros__parameters:
-      update_frequency: 1.0
-      publish_frequency: 1.0
-      global_frame: map
-      robot_base_frame: base_link
-      use_sim_time: false
-      robot_radius: 0.105
-      plugins: ["static_layer", "inflation_layer"]
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: true
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.30
-
-planner_server:
-  ros__parameters:
-    use_sim_time: false
-    expected_planner_frequency: 1.0
-    planner_plugins: ["GridBased"]
-    GridBased:
-      plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
-
-controller_server:
-  ros__parameters:
-    use_sim_time: false
-    controller_frequency: 10.0
-    min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.5
-    min_theta_velocity_threshold: 0.001
-    failure_tolerance: 0.3
-    controller_plugins: ["FollowPath"]
-    FollowPath:
-      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.18        # Velocidad lineal segura
-      max_angular_vel: 0.4            # Evita derrapes en el suelo del laboratorio
-      min_approach_linear_velocity: 0.05
-      lookahead_dist: 0.35
-      use_velocity_scaled_lookahead_dist: false
-      use_regulated_linear_velocity_scaling: true
-
-velocity_smoother:
-  ros__parameters:
-    use_sim_time: false
