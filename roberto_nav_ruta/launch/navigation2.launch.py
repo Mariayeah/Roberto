@@ -33,9 +33,9 @@ def generate_launch_description():
     map_dir = LaunchConfiguration(
         'map',
         default=os.path.join(
-            get_package_share_directory('roberto_nav_ruta'),
-            'param',
-            'empty.yaml'))
+            get_package_share_directory('roberto_mundo'),
+            'maps',
+            'mapadelmundo.yaml'))
 
     param_file_name = TURTLEBOT3_MODEL + '.yaml'
     if ROS_DISTRO == 'humble':
