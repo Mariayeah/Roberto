@@ -27,9 +27,8 @@ from launch_ros.actions import Node
 TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
 ROS_DISTRO = os.environ.get('ROS_DISTRO')
 
-
 def generate_launch_description():
-    use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    use_sim_time = False
     map_dir = LaunchConfiguration(
         'map',
         default=os.path.join(
@@ -74,16 +73,11 @@ def generate_launch_description():
             default_value=param_dir,
             description='Full path to param file to load'),
 
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='false',
-            description='Use simulation (Gazebo) clock if true'),
-
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([nav2_launch_file_dir, '/bringup_launch.py']),
             launch_arguments={
                 'map': map_dir,
-                'use_sim_time': use_sim_time,
+                'use_sim_time': 'false',
                 'params_file': param_dir}.items(),
         ),
 
