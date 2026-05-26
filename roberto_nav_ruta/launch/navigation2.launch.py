@@ -42,9 +42,10 @@ def generate_launch_description():
         param_dir = LaunchConfiguration(
             'params_file',
             default=os.path.join(
-                get_package_share_directory('roberto_nav_ruta'),
+                get_package_share_directory('turtlebot3_navigation2'),
                 'param',
-                'nav2_params.yaml'))
+                ROS_DISTRO,
+                param_file_name))
     else:
         param_dir = LaunchConfiguration(
             'params_file',
