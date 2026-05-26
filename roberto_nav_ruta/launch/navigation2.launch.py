@@ -24,49 +24,30 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
-ROS_DISTRO = os.environ.get('ROS_DISTRO')
-
-
 def generate_launch_description():
+    # 1. Forzamos use_sim_time a false para usar el reloj de hardware real de Roberto
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
-    map_dir = LaunchConfiguration(
-        'map',
+    
+    # 2. Apuntamos a vuestro archivo de parámetros propio 'nav2_params.yaml'
+    # dentro de vuestro paquete actual para que no busque configuraciones fantasma
+    param_dir = LaunchConfiguration(
+        'params_file',
         default=os.path.join(
-            get_package_share_directory('roberto_mundo'),
-            'maps',
-            'mapadelmundo.yaml'))
+            get_package_share_directory('roberto_nav_ruta'),
+            'param',
+            'parameters.yaml'))
 
-    param_file_name = TURTLEBOT3_MODEL + '.yaml'
-    if ROS_DISTRO == 'humble':
-        param_dir = LaunchConfiguration(
-            'params_file',
-            default=os.path.join(
-                get_package_share_directory('turtlebot3_navigation2'),
-                'param',
-                ROS_DISTRO,
-                param_file_name))
-    else:
-        param_dir = LaunchConfiguration(
-            'params_file',
-            default=os.path.join(
-                get_package_share_directory('turtlebot3_navigation2'),
-                'param',
-                param_file_name))
-
+    # Buscador nativo de la instalación de Nav2 del sistema operativo
     nav2_launch_file_dir = os.path.join(get_package_share_directory('nav2_bringup'), 'launch')
 
+    # Apuntamos al archivo de configuración de RViz de vuestro paquete
     rviz_config_dir = os.path.join(
-        get_package_share_directory('turtlebot3_navigation2'),
+        get_package_share_directory('roberto_nav_ruta'),
         'rviz',
         'tb3_navigation2.rviz')
 
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'map',
-            default_value=map_dir,
-            description='Full path to map file to load'),
-
+        # Eliminamos el DeclareLaunchArgument de 'map' porque ya no hay mapa
         DeclareLaunchArgument(
             'params_file',
             default_value=param_dir,
@@ -77,14 +58,16 @@ def generate_launch_description():
             default_value='false',
             description='Use simulation (Gazebo) clock if true'),
 
+        # ¡EL CAMBIO CRÍTICO!: Incluimos 'navigation_launch.py' en lugar de 'bringup_launch.py'
+        # Esto arranca Planner y Controller omitiendo por completo el Map Server y AMCL
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([nav2_launch_file_dir, '/bringup_launch.py']),
+            PythonLaunchDescriptionSource([nav2_launch_file_dir, '/navigation_launch.py']),
             launch_arguments={
-                'map': map_dir,
                 'use_sim_time': use_sim_time,
                 'params_file': param_dir}.items(),
         ),
 
+        # RViz se abre adaptado al tiempo real de las ruedas
         Node(
             package='rviz2',
             executable='rviz2',
