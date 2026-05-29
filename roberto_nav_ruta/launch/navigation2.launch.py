@@ -24,35 +24,28 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
-ROS_DISTRO = os.environ.get('ROS_DISTRO')
+TURTLEBOT3_MODEL = os.environ.get('TURTLEBOT3_MODEL', 'burger')
+ROS_DISTRO = os.environ.get('ROS_DISTRO', 'humble')
 
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    
+    # Dirección del mapa airport.yaml
     map_dir = LaunchConfiguration(
         'map',
         default=os.path.join(
             get_package_share_directory('roberto_nav_ruta'),
             'param',
-            'mi_mapa.yaml'))
+            'airport.yaml'))
 
-    param_file_name = TURTLEBOT3_MODEL + '.yaml'
-    if ROS_DISTRO == 'humble':
-        param_dir = LaunchConfiguration(
-            'params_file',
-            default=os.path.join(
-                get_package_share_directory('turtlebot3_navigation2'),
-                'param',
-                ROS_DISTRO,
-                param_file_name))
-    else:
-        param_dir = LaunchConfiguration(
-            'params_file',
-            default=os.path.join(
-                get_package_share_directory('turtlebot3_navigation2'),
-                'param',
-                param_file_name))
+    # Dirección de tu nav2_params.yaml personalizado
+    param_dir = LaunchConfiguration(
+        'params_file',
+        default=os.path.join(
+            get_package_share_directory('roberto_nav_ruta'),
+            'param',
+            'nav2_params.yaml'))
 
     nav2_launch_file_dir = os.path.join(get_package_share_directory('nav2_bringup'), 'launch')
 
@@ -77,6 +70,7 @@ def generate_launch_description():
             default_value='false',
             description='Use simulation (Gazebo) clock if true'),
 
+        # Aquí se incluye el bringup_launch.py pasando tanto tu mapa como tus parámetros personalizados
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([nav2_launch_file_dir, '/bringup_launch.py']),
             launch_arguments={
