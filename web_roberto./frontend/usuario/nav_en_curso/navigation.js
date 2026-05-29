@@ -148,3 +148,113 @@ function initNavigation() {
         }
     }, 500);
 }
+
+//
+// ===============================
+// ROS2 NAV2 PAUSE / RESUME (ADD-ON)
+// TwistStamped version
+// ===============================
+//
+
+const ros = new ROSLIB.Ros({
+    url: 'ws://localhost:9090'
+});
+
+// Publica velocidad (STOP REAL)
+const cmdVelTopic = new ROSLIB.Topic({
+    ros: ros,
+    name: '/cmd_vel',
+    messageType: 'geometry_msgs/TwistStamped'
+});
+
+// TU goal propio (no Nav2 directo)
+const goalTopic = new ROSLIB.Topic({
+    ros: ros,
+    name: '/destination_zone',
+    messageType: 'std_msgs/Int32'
+});
+
+let navigationPaused = false;
+let savedGoal = null;
+
+// Captura goal desde sessionStorage SIN tocar tu lógica original
+function loadSavedGoal() {
+
+    const destinationName =
+        sessionStorage.getItem('currentDestinationName') || "Destino";
+
+    const destId =
+        sessionStorage.getItem('currentDestinationId') || 1;
+
+    savedGoal = {
+        id: destId,
+        name: destinationName
+    };
+}
+
+// STOP REAL con TwistStamped
+function pauseRobot() {
+
+    const stopMsg = new ROSLIB.Message({
+        header: {
+            frame_id: "base_link",
+            stamp: { secs: 0, nsecs: 0 }
+        },
+        twist: {
+            linear: { x: 0, y: 0, z: 0 },
+            angular: { x: 0, y: 0, z: 0 }
+        }
+    });
+
+    cmdVelTopic.publish(stopMsg);
+
+    console.log("[ROS] Robot detenido (TwistStamped)");
+}
+
+// RESUME (republica goal)
+function resumeRobot() {
+
+    if (!savedGoal) loadSavedGoal();
+
+    const msg = new ROSLIB.Message({
+        data: parseInt(savedGoal.id)
+    });
+
+    goalTopic.publish(msg);
+
+    console.log("[ROS] Robot reanudado con goal:", savedGoal);
+}
+
+// Hook del botón (NO toca tu HTML original)
+document.addEventListener('DOMContentLoaded', () => {
+
+    const btn = document.getElementById('toggle-nav-btn');
+
+    if (!btn) return;
+
+    loadSavedGoal();
+
+    btn.addEventListener('click', () => {
+
+        if (!navigationPaused) {
+
+            navigationPaused = true;
+
+            pauseRobot();
+
+            btn.classList.add('resumed');
+            btn.querySelector('.stop-icon').textContent = '▶';
+            btn.querySelector('.btn-text').textContent = 'Reanudar trayecto';
+
+        } else {
+
+            navigationPaused = false;
+
+            resumeRobot();
+
+            btn.classList.remove('resumed');
+            btn.querySelector('.stop-icon').textContent = '⏸';
+            btn.querySelector('.btn-text').textContent = 'Pausar trayecto';
+        }
+    });
+});

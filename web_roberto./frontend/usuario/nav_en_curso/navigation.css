@@ -68,3 +68,47 @@ body {
 .stat-value { font-size: 1.3rem; color: var(--navy); }
 
 .safety-notice { background: rgba(240, 161, 80, 0.1); border: 1px solid var(--orange); color: #b37335; padding: 1rem; border-radius: 1rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; font-weight: 500; }
+
+
+.stop-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1rem 1.2rem;
+
+    border: none;
+    border-radius: 1rem;
+
+    background: var(--navy);
+    color: white;
+
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+
+    box-shadow: 0 8px 20px rgba(53, 66, 102, 0.15);
+}
+
+.stop-btn:hover {
+    transform: translateY(-2px);
+}
+
+.stop-btn:active {
+    transform: scale(0.98);
+}
+
+.stop-btn.resumed {
+    background: var(--orange);
+}
+
+.stop-icon {
+    font-size: 1.1rem;
+}
