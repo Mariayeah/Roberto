@@ -320,6 +320,45 @@ async function resolverEvento(eventoId, tecnicoId, accion) {
     await pool.query(query, [notaResolucion, eventoId]);
 }
 
+/**
+ * Obtiene los detalles de estado principales de un robot específico para la ficha técnica.
+ * Realiza un LEFT JOIN con Mantenimiento y Tecnico para obtener el nombre del técnico asociado más reciente.
+ * @author Mery
+ * @param {number} robotId ID del robot a consultar.
+ * @returns {Promise<object|null>} Objeto con ID, Modelo y Técnico, o null si no existe.
+ */
+async function getRobotInfoDetallada(robotId) {
+    // Añadimos el JOIN con la tabla Tecnico (t) para obtener el Nombre
+    const query = `
+        SELECT 
+            r.RobotID, 
+            r.Descripcion AS Modelo, 
+            t.Nombre AS NombreTecnico 
+        FROM Robot r
+        LEFT JOIN Mantenimiento m ON r.RobotID = m.RobotID
+        LEFT JOIN Tecnico t ON m.TecnicoID = t.TecnicoID
+        WHERE r.RobotID = ?
+        ORDER BY m.MantenimientoID DESC 
+        LIMIT 1;
+    `;
+    
+    const [rows] = await pool.query(query, [robotId]);
+    
+    if (!rows || rows.length === 0) {
+        return null;
+    }
+
+    const data = rows[0];
+
+    // Formateamos los datos para que la interfaz los reciba claros y ordenados
+    return {
+        id_codigo: `ROB-00${data.RobotID}`, // Pasa de 1 a "ROB-001"
+        modelo: data.Modelo || 'TurtleBot 3 Burger',
+        // CAMBIO AQUÍ: Ahora enviamos directamente el nombre recuperado de la base de datos
+        tecnico_asociado: data.NombreTecnico || 'Sin técnico asignado'
+    };
+}
+
 module.exports = {
     pool,
     getZonas,
@@ -336,5 +375,6 @@ module.exports = {
     getZonaNames,
     updateInteraccion,
     getEventosConEstado,
-    resolverEvento      
+    resolverEvento,
+    getRobotInfoDetallada
 };

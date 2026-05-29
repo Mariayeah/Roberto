@@ -620,6 +620,41 @@ function renderizarIncidencias() {
         </div>
     `).join('') || '<p style="text-align:center; color:gray;">No hay incidencias.</p>';
 }
+/**
+ * Realiza la petición a la API y abre el pop-up con la ficha técnica del robot seleccionado.
+ * @author Mery
+ */
+async function abrirFichaRobot(robotId) {
+    try {
+        const response = await fetch(`/api/robot/${robotId}`);
+        if (!response.ok) throw new Error('Error al recuperar los datos del robot');
+        
+        const data = await response.json();
+        
+        // Inyectamos los datos en los contenedores del pop-up
+        document.getElementById('infoCardTitle').textContent = `Ficha de Roberto ${robotId}`;
+        document.getElementById('popup-robot-id').textContent = data.id_codigo;
+        document.getElementById('popup-robot-modelo').textContent = data.modelo;
+        document.getElementById('popup-robot-tecnico').textContent = data.tecnico_asociado;
+        
+        // CAMBIO AQUÍ: Usamos display = 'flex' para que se centre en pantalla con vuestro CSS
+        document.getElementById('infoCard').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error al cargar los detalles:', error);
+    }
+}
+
+// CAMBIO AQUÍ: Ocultamos cambiando el display a 'none'
+window.closeInfoCard = function() {
+    document.getElementById('infoCard').style.display = 'none';
+}
+
+// Asegúrate de que vuestra función existente para cerrar limpie o oculte el contenedor
+function closeInfoCard() {
+    const infoCard = document.getElementById('infoCard');
+    infoCard.classList.remove('active'); // O infoCard.style.display = 'none'
+}
 
 window.confirmarResolucion = async (id) => {
     const accion = document.getElementById(`t-${id}`).value;
@@ -635,5 +670,3 @@ window.confirmarResolucion = async (id) => {
 
 // Polling suave para el badge
 setInterval(actualizarIncidencias, 10000);
-
-/* --- HISTORIAL FUNCIONAL END --- */

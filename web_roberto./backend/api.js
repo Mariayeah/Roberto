@@ -426,4 +426,35 @@ router.post('/eventos/resolver', async (req, res) => {
     }
 });
 
+/**
+ * @route GET /api/robot/:id
+ * @description Obtiene los datos principales y de mantenimiento de un robot específico para el pop-up.
+ * @author Mery
+ */
+router.get('/robot/:id', async (req, res) => {
+    try {
+        const robotId = req.params.id;
+        
+        // Llamamos al nuevo método que interactúa con la base de datos
+        const infoRobot = await logica.getRobotInfoDetallada(robotId);
+        
+        if (!infoRobot) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Robot no encontrado o sin datos configurados' 
+            });
+        }
+        
+        // Devolvemos el JSON estructurado de forma clara y ordenada
+        res.json(infoRobot);
+        
+    } catch (error) {
+        console.error('[API] Error al obtener detalles del robot:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error interno del servidor al consultar la base de datos' 
+        });
+    }
+});
+
 module.exports = router;

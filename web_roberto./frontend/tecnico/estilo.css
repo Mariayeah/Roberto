@@ -770,3 +770,9 @@ tr:hover td {
 .btn {
     font-family: inherit;
 }
+
+/* Efecto hover interactivo para el botón de detalles */
+.ver-detalles-btn:hover {
+    color: #2563eb !important; /* Cambia al azul corporativo de tu app */
+    text-decoration: underline; /* Lo subraya para indicar que es clicable */
+}
