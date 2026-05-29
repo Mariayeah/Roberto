@@ -33,16 +33,16 @@
                 <span>5 conectados</span>
             </div>
             <ul class="robot-list">
-                <li class="robot-item active">
+                <li class="robot-item">
                     <div class="robot-info">
-                        <strong>Roberto 1</strong>
+                        <strong><a href="../tecnico/dashboard.html" style="text-decoration:none; color:inherit;">Roberto 1</a></strong>
                         <span id="sidebar-bat-1"><i class="ph ph-battery-medium"></i> 85%</span>
                     </div>
                     <span class="status online">Activo</span>
                 </li>
-                <li class="robot-item">
+                <li class="robot-item active">
                     <div class="robot-info">
-                        <strong><a href="../tecnico_inactivo/dashboard.html" style="text-decoration:none; color:inherit;">Roberto 2</a></strong>
+                        <strong>Roberto 2</strong>
                         <span id="sidebar-bat-2" style="color: gray;"><i class="ph ph-battery-medium"></i> 42%</span>
                     </div>
                     <span class="status offline" style="background-color: #e2e8f0; color: #64748b;">Apagado</span>
@@ -87,13 +87,14 @@
             <section class="grid-layout">
                 <div class="card video-feed">
                     <div class="card-header">
-                        <span><i class="ph ph-video-camera"></i> Vista de Cámara - Roberto 1</span>
-                        <span class="live-badge">EN VIVO</span>
+                        <span><i class="ph ph-video-camera-slash"></i> Vista de Cámara - Roberto 2</span>
+                        <span class="live-badge" style="background-color: #64748b;">OFFLINE</span>
                     </div>
-                    <div class="camera-placeholder" style="background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 200px; border-radius: 10px;">
-                        <img src="http://localhost:5000/video_feed" 
-                            alt="Streaming Burger" 
-                            style="width: 100%; height: auto; display: block;">
+                    <div class="camera-placeholder" style="background: #111; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 200px; border-radius: 10px;">
+                        <div style="text-align: center; color: #64748b;">
+                            <i class="ph ph-robot" style="font-size: 3rem; margin-bottom: 10px; display: block;"></i>
+                            <span>Robot Apagado</span>
+                        </div>
                     </div>
                 </div>
             
@@ -147,18 +148,17 @@
                     </div>
                     <div class="status-content">
                         <div class="stat-row">
-                            <span>Velocidad</span>
-                            <strong id="speed-value">0.00 m/s</strong>
+                            <span style="color: gray;">Velocidad</span>
+                            <strong id="speed-value" style="color: gray;">0.00 m/s</strong>
                         </div>
                         <div class="progress-bar">
-                            <div class="progress-fill" id="speed-fill" style="width: 0%"></div>
+                            <div class="progress-fill" id="speed-fill" style="width: 0%; background: gray;"></div>
                         </div>
 
-
                         <ul class="systems-list">
-                            <li id="motor-info">Motores <span class="check-ok" id="motor-status">OK</span></li>
-                            <li id="sensor-info">Sensores <span class="check-ok" id="sensor-status">OK</span></li>
-                            <li id="battery-info">Bateria <span id="battery-percent">85%</span></li>
+                            <li id="motor-info" style="color: gray;">Motores <span class="check-error" id="motor-status" style="color: #e74c3c; font-weight: bold;">OFFLINE</span></li>
+                            <li id="sensor-info" style="color: gray;">Sensores <span class="check-error" id="sensor-status" style="color: #e74c3c; font-weight: bold;">OFFLINE</span></li>
+                            <li id="battery-info" style="color: gray;">Bateria <span id="battery-percent" style="color: #e74c3c; font-weight: bold;">42%</span></li>
                         </ul>
                     </div>
                 </div>
