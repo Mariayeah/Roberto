@@ -75,7 +75,7 @@ function connectControlROS() {
             controlConnected = true;
             
             // Iniciar publicaciones y suscripciones
-            startPublishing();
+            // startPublishing();
             subscribeToOdom();
             subscribeToJointStates();
             subscribeToBatteryState();
@@ -147,77 +147,66 @@ function disconnectControlROS() {
 // ============================================
 // PUBLICACIÓN DE VELOCIDAD
 // ============================================
-
-
-/**
- * Inicia la publicación periódica del mensaje /cmd_vel.
- */
-function startPublishing() {
-    if (publishInterval) clearInterval(publishInterval);
+function publishTwist() {
+    if (!controlRos || !controlConnected) return;
     
-    console.log('Iniciando publicación en /cmd_vel');
-    
-    publishInterval = setInterval(() => {
-        if (!controlRos || !controlConnected) return;
-        
-        // TwistStamped CORRECTAMENTE FORMADO
-        const twistStamped = new ROSLIB.Message({
-            header: {
-                stamp: {
-                    sec: Math.floor(Date.now() / 1000),
-                    nanosec: (Date.now() % 1000) * 1000000
-                },
-                frame_id: "base_link"
+    // TwistStamped CORRECTAMENTE FORMADO
+    const twistStamped = new ROSLIB.Message({
+        header: {
+            stamp: {
+                sec: Math.floor(Date.now() / 1000),
+                nanosec: (Date.now() % 1000) * 1000000
             },
-            twist: {
-                linear: {
-                    x: currentLinear,
-                    y: 0.0,
-                    z: 0.0
-                },
-                angular: {
-                    x: 0.0,
-                    y: 0.0,
-                    z: currentAngular
-                }
-            }
-        });
-        
-        let cmdVelPub = new ROSLIB.Topic({
-            ros: controlRos,
-            name: '/cmd_vel',
-            messageType: 'geometry_msgs/msg/TwistStamped'
-        });
-        
-        cmdVelPub.publish(twistStamped);
-        
-        // Actualizar UI
-        const speedValueSpan = document.getElementById('speed-value');
-        const speedFill = document.getElementById('speed-fill');
-        const speedAbs = Math.abs(currentLinear);
-        if (speedValueSpan) speedValueSpan.textContent = speedAbs.toFixed(2) + ' m/s';
-        if (speedFill) speedFill.style.width = Math.min(100, speedAbs * 100) + '%';
-        
-    }, 100);
+            frame_id: "base_link"
+        },
+        twist: {
+            linear: { x: currentLinear, y: 0.0, z: 0.0 },
+            angular: { x: 0.0, y: 0.0, z: currentAngular }
+        }
+    });
+    
+    let cmdVelPub = new ROSLIB.Topic({
+        ros: controlRos,
+        name: '/cmd_vel',
+        messageType: 'geometry_msgs/msg/TwistStamped'
+    });
+    
+    cmdVelPub.publish(twistStamped);
+    
+    // Actualizar UI de velocidad
+    const speedValueSpan = document.getElementById('speed-value');
+    const speedFill = document.getElementById('speed-fill');
+    const speedAbs = Math.abs(currentLinear);
+    if (speedValueSpan) speedValueSpan.textContent = speedAbs.toFixed(2) + ' m/s';
+    if (speedFill) speedFill.style.width = Math.min(100, speedAbs * 100) + '%';
 }
 
 
 /**
- * Detiene la publicación periódica.
+ * Inicia la publicación periódica SOLO si no está corriendo.
+ */
+function startPublishing() {
+    if (publishInterval) return; // Ya está corriendo, no duplicar loops
+    
+    console.log('▶️ Iniciando transmisión en /cmd_vel (Joystick Activo)');
+    publishInterval = setInterval(publishTwist, 100);
+}
+
+/**
+ * Detiene la publicación periódica por completo para liberar el tópico.
  */
 function stopPublishing() {
     if (publishInterval) {
         clearInterval(publishInterval);
         publishInterval = null;
-        console.log('Publicación detenida');
+        console.log('⏸️ Transmisión en /cmd_vel detenida (Tópico liberado para Nav2)');
     }
 }
 
 
 // ============================================
-// CONTROL DE MOVIMIENTO
+// CONTROL DE MOVIMIENTO (Controlador de Ciclo)
 // ============================================
-
 
 /**
  * Define el movimiento del robot según el comando recibido.
@@ -235,33 +224,40 @@ function setMovement(moveCommand) {
         case "delante":
             currentLinear = 0.1;
             currentAngular = 0.0;
+            startPublishing(); // Encendemos el bucle
             break;
         case "atras":
             currentLinear = -0.1;
             currentAngular = 0.0;
+            startPublishing(); // Encendemos el bucle
             break;
         case "izquierda":
             currentLinear = 0.1;
             currentAngular = 0.2;
+            startPublishing(); // Encendemos el bucle
             break;
         case "derecha":
             currentLinear = 0.1;
             currentAngular = -0.2;
+            startPublishing(); // Encendemos el bucle
             break;
         case "parar":
             currentLinear = 0.0;
             currentAngular = 0.0;
+            
+            // Enviamos un último mensaje de parada inmediata para frenar en seco
+            publishTwist(); 
+            
+            // Apagamos el bucle por completo. ¡Ya no mandamos más ceros!
+            stopPublishing(); 
             break;
         default:
             return;
     }
     
     console.log(`Movimiento: ${moveCommand} | Linear: ${currentLinear} | Angular: ${currentAngular}`);
-    
-    // Animar el joystick
     animateJoystick(moveCommand);
 }
-
 
 // ============================================
 // ANIMACIÓN DEL JOYSTICK
@@ -679,3 +675,5 @@ window.closeInfoCard = closeInfoCard;
 window.connectControlROS = connectControlROS;
 window.disconnectControlROS = disconnectControlROS;
 window.setMovement = setMovement;
+
+
