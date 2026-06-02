@@ -425,6 +425,24 @@ router.post('/eventos/resolver', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al resolver' });
     }
 });
+/**
+ * @route POST /api/navigation/control
+ * @description Envía una orden de pausa (true) o reanudación (false) al seguidor de objetivos en ROS.
+ * @param {boolean} pause - Estado de pausa solicitado por la web.
+ * @author Mery
+ */
+router.post('/navigation/control', (req, res) => {
+    const { pause } = req.body;
+
+    if (pause === undefined) {
+        return res.status(400).json({ success: false, error: 'Falta el parámetro booleano "pause"' });
+    }
+
+    // Enviamos el estado directamente al cliente de ROS
+    rosClient.sendNavigationControl(pause);
+
+    res.json({ success: true, status: pause ? 'paused' : 'resumed' });
+});
 
 /**
  * @route GET /api/robot/:id
