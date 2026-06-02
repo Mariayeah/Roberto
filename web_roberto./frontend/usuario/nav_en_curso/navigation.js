@@ -17,13 +17,59 @@ function initNavigation() {
         eta: document.getElementById('val-eta') || document.getElementById('nav-eta'),
         progText: document.getElementById('val-prog') || document.getElementById('nav-percentage'),
         progFill: document.getElementById('progress-fill') || document.getElementById('track-fill'),
-        marker: document.getElementById('robot-marker')
+        marker: document.getElementById('robot-marker'),
+        btnToggle: document.getElementById('btn-toggle-nav') // NUEVO
     };
 
     const startTime = Date.now();
     let initialDistance = null;
-    let localGoal = null; // Guardamos la meta localmente para que no se congele
+    let localGoal = null; 
     let hasArrived = false;
+    let isPaused = false; // NUEVO: Estado de la navegación en el cliente
+
+    // ============================================
+    // NUEVO: CONTROLADOR DEL BOTÓN (STOP / RESUME)
+    // ============================================
+    if (ui.btnToggle) {
+        ui.btnToggle.addEventListener('click', async () => {
+            isPaused = !isPaused; // Invertir estado local
+
+            if (isPaused) {
+                // Cambiar UI a modo Reanudar
+                ui.btnToggle.textContent = "▶️ Reanudar Marcha";
+                ui.btnToggle.classList.remove('btn-stop');
+                ui.btnToggle.classList.add('btn-resume');
+                
+                // Enviar señal de PAUSA (true) al backend
+                sendNavSignal(true);
+            } else {
+                // Cambiar UI a modo Parar
+                ui.btnToggle.textContent = "🛑 Parar Robot";
+                ui.btnToggle.classList.remove('btn-resume');
+                ui.btnToggle.classList.add('btn-stop');
+                
+                // Enviar señal de REANUDAR (false) al backend
+                sendNavSignal(false);
+            }
+        });
+    }
+
+    /**
+     * Envía la orden de pausa o reanudación al servidor Express de la aplicación.
+     */
+    async function sendNavSignal(pauseState) {
+        try {
+            await fetch('/api/navigation/control', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pause: pauseState })
+            });
+            console.log(`Petición de control enviada: pause = ${pauseState}`);
+        } catch (err) {
+            console.error("Error enviando señal de control:", err);
+        }
+    }
+    // ============================================
 
     // Bucle de telemetría a prueba de fallos
     const pollInterval = setInterval(async () => {
@@ -47,8 +93,8 @@ function initNavigation() {
             if (!localGoal) return;
 
             // Calcular distancia matemática exacta
-            const dx = localGoal.x - currentPos.x;
-            const dy = localGoal.y - currentPos.y;
+            const dx = localGoal.x - currentPos.x
+            const dy = localGoal.y - currentPos.y
             const distanceRemaining = Math.sqrt(dx * dx + dy * dy);
 
             // Fijar la distancia de partida
@@ -60,10 +106,10 @@ function initNavigation() {
             let progress = 0;
             if (initialDistance > 0) {
                 progress = 100 - ((distanceRemaining / initialDistance) * 100);
-                progress = Math.max(0, Math.min(100, progress)); // Limitar entre 0 y 100
+                progress = Math.max(0, Math.min(100, progress)); 
             }
 
-            // Obtener velocidad (Si falla, usamos un estimado visual)
+            // Obtener velocidad 
             let speed = 0;
             try {
                 const statusRes = await fetch('/api/navigation/status');
@@ -100,6 +146,9 @@ function initNavigation() {
                 hasArrived = true;
                 clearInterval(pollInterval);
                 
+                // Ocultar botón de pausa al llegar por coherencia visual
+                if (ui.btnToggle) ui.btnToggle.style.display = 'none';
+
                 // Forzar UI a 100%
                 if (ui.progFill) ui.progFill.style.width = `100%`;
                 if (ui.marker) ui.marker.style.left = `100%`;
@@ -108,21 +157,18 @@ function initNavigation() {
 
                 console.log("¡Llegada detectada! Guardando viaje...");
 
-                // 1. Calcular duración real
                 const durationSecs = Math.floor((Date.now() - startTime) / 1000);
                 
-                // 2. Guardar datos en memoria para arrival.html
                 sessionStorage.setItem('tripDuration', durationSecs);
                 sessionStorage.setItem('tripDistance', initialDistance ? initialDistance.toFixed(1) : "0.0");
 
-                // 3. Guardar el viaje en Base de Datos (Parte 1: Sin valoración)
                 try {
                     const res = await fetch('/api/interaccion/llegada', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             robotId: 1, 
-                            zonaActualId: 1, // Simulando origen fijo
+                            zonaActualId: 1, 
                             zonaDestinoId: parseInt(destId) || 1,
                             duracion: durationSecs
                         })
@@ -130,14 +176,12 @@ function initNavigation() {
 
                     const resData = await res.json();
                     if (resData.success) {
-                        // Guardamos el ID de esta fila para actualizarla luego con las estrellas
                         sessionStorage.setItem('currentInteraccionId', resData.id);
                     }
                 } catch (dbError) {
                     console.error("Error BD:", dbError);
                 }
 
-                // 4. Saltar a la pantalla de valoración
                 setTimeout(() => {
                     window.location.href = '../llegada_y_valoracion/arrival.html';
                 }, 1500);
