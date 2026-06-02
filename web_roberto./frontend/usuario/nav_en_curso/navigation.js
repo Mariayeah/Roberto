@@ -25,10 +25,10 @@ function initNavigation() {
     let initialDistance = null;
     let localGoal = null; 
     let hasArrived = false;
-    let isPaused = false; // NUEVO: Estado de la navegación en el cliente
+    let isPaused = false; // Estado global de la sesión de navegación local
 
     // ============================================
-    // NUEVO: CONTROLADOR DEL BOTÓN (STOP / RESUME)
+    // CONTROLADOR DEL BOTÓN (STOP / RESUME)
     // ============================================
     if (ui.btnToggle) {
         ui.btnToggle.addEventListener('click', async () => {
@@ -59,14 +59,18 @@ function initNavigation() {
      */
     async function sendNavSignal(pauseState) {
         try {
+            // CORREGIDO: Forzamos la estructura exacta que espera tu router de api.js { pause: boolean }
             await fetch('/api/navigation/control', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pause: pauseState })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ pause: !!pauseState }) 
             });
-            console.log(`Petición de control enviada: pause = ${pauseState}`);
+            console.log(`📡 Señal enviada al backend -> pause: ${pauseState}`);
         } catch (err) {
-            console.error("Error enviando señal de control:", err);
+            console.error("❌ Error enviando señal de control:", err);
         }
     }
     // ============================================
@@ -93,11 +97,11 @@ function initNavigation() {
             if (!localGoal) return;
 
             // Calcular distancia matemática exacta
-            const dx = localGoal.x - currentPos.x
-            const dy = localGoal.y - currentPos.y
+            const dx = localGoal.x - currentPos.x;
+            const dy = localGoal.y - currentPos.y;
             const distanceRemaining = Math.sqrt(dx * dx + dy * dy);
 
-            // Fijar la distancia de partida
+            // Fijar la distancia de partida inicial de forma segura
             if (initialDistance === null && distanceRemaining > 0) {
                 initialDistance = distanceRemaining;
             }
@@ -114,10 +118,15 @@ function initNavigation() {
             try {
                 const statusRes = await fetch('/api/navigation/status');
                 if (statusRes.ok) {
-                    const statusData = await statusRes.json();
+                    const statusData = await statusRes.ok ? await statusRes.json() : { speed: 0.35 };
                     if (statusData.speed !== undefined) speed = statusData.speed;
                 }
             } catch(e) {}
+
+            // Si está pausado localmente, forzamos que la interfaz muestre 0.0 m/s temporalmente
+            if (isPaused) {
+                speed = 0.0;
+            }
 
             // Calcular ETA
             let etaSecs = 0;
@@ -129,10 +138,12 @@ function initNavigation() {
             if (ui.progText) ui.progText.textContent = `${Math.round(progress)}%`;
             
             if (ui.eta) {
-                if (etaSecs > 0) {
+                if (etaSecs > 0 && !isPaused) {
                     const mins = Math.floor(etaSecs / 60);
                     const secs = Math.floor(etaSecs % 60);
                     ui.eta.textContent = `${mins}:${secs.toString().padStart(2, '0')} min`;
+                } else if (isPaused) {
+                    ui.eta.textContent = "Pausado";
                 } else {
                     ui.eta.textContent = "0:00 min";
                 }
@@ -142,7 +153,7 @@ function initNavigation() {
             if (ui.marker) ui.marker.style.left = `${progress}%`;
 
             // --- TRIGGER DE LLEGADA (Garantizado) ---
-            if (distanceRemaining <= 0.15) {
+            if (distanceRemaining <= 0.15 && !isPaused) { // Evitamos falsos positivos si se pausa cerca del origen
                 hasArrived = true;
                 clearInterval(pollInterval);
                 
