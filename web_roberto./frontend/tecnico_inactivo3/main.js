@@ -661,3 +661,36 @@ window.confirmarResolucion = async (id) => {
 setInterval(actualizarIncidencias, 10000);
 
 /* --- HISTORIAL FUNCIONAL END --- */
+
+/**
+ * Realiza la petición a la API y abre el pop-up con la ficha técnica del robot seleccionado.
+ * @author Mery
+ */
+async function abrirFichaRobot(robotId) {
+    try {
+        const response = await fetch(`/api/robot/${robotId}`);
+        if (!response.ok) throw new Error('Error al recuperar los datos del robot');
+        
+        const data = await response.json();
+        
+        // Inyectamos los datos en los contenedores del pop-up
+        document.getElementById('infoCardTitle').textContent = `Ficha de Roberto ${robotId}`;
+        document.getElementById('popup-robot-id').textContent = data.id_codigo;
+        document.getElementById('popup-robot-modelo').textContent = data.modelo;
+        document.getElementById('popup-robot-tecnico').textContent = data.tecnico_asociado;
+        
+        // CAMBIO AQUÍ: Usamos display = 'flex' para que se centre en pantalla con vuestro CSS
+        document.getElementById('infoCard').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error al cargar los detalles:', error);
+    }
+}
+
+window.closeInfoCard = function() {
+    document.getElementById('infoCard').style.display = 'none';
+};
+
+function closeInfoCard() {
+    document.getElementById('infoCard').style.display = 'none';
+}
