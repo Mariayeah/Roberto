@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 12, 2026 at 12:35 AM
+-- Generation Time: Jun 03, 2026 at 12:45 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -11,8 +11,6 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
--- Desactivamos la comprobación de claves foráneas temporalmente para evitar errores al borrar
-SET FOREIGN_KEY_CHECKS = 0;
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -29,7 +27,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Table structure for table `Aeropuerto`
 --
 
-DROP TABLE IF EXISTS `Aeropuerto`;
 CREATE TABLE `Aeropuerto` (
   `CodigoIATA` varchar(10) NOT NULL,
   `Nombre` varchar(100) NOT NULL
@@ -49,7 +46,6 @@ INSERT INTO `Aeropuerto` (`CodigoIATA`, `Nombre`) VALUES
 -- Table structure for table `Evento`
 --
 
-DROP TABLE IF EXISTS `Evento`;
 CREATE TABLE `Evento` (
   `EventoID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -75,7 +71,6 @@ INSERT INTO `Evento` (`EventoID`, `RobotID`, `PosicionID`, `FechaHora`, `TipoEve
 -- Table structure for table `Interaccion`
 --
 
-DROP TABLE IF EXISTS `Interaccion`;
 CREATE TABLE `Interaccion` (
   `InteraccionID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -116,7 +111,6 @@ INSERT INTO `Interaccion` (`InteraccionID`, `RobotID`, `ZonaActualID`, `ZonaDest
 -- Table structure for table `Mantenimiento`
 --
 
-DROP TABLE IF EXISTS `Mantenimiento`;
 CREATE TABLE `Mantenimiento` (
   `MantenimientoID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -128,13 +122,21 @@ CREATE TABLE `Mantenimiento` (
   `Notas` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
+--
+-- Dumping data for table `Mantenimiento`
+--
+
+INSERT INTO `Mantenimiento` (`MantenimientoID`, `RobotID`, `TecnicoID`, `Tipo`, `FechaProgramada`, `FechaEjecutada`, `Estado`, `Notas`) VALUES
+(1, 1, 3, 'Preventivo', '2026-05-15', '2026-05-15 10:30:00', 'Completado', 'Revisión de motores y calibración de cámara LiDAR OK.'),
+(2, 2, 1, 'Correctivo', '2026-05-20', '2026-05-20 15:15:00', 'Completado', 'Actualización de nodos de navegación ROS2 Jazzy.'),
+(3, 3, 2, 'Preventivo', '2026-05-28', '2026-05-28 11:45:00', 'Completado', 'Carga de batería optimizada y test de tracción de la base Burger.');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `PosicionRobot`
 --
 
-DROP TABLE IF EXISTS `PosicionRobot`;
 CREATE TABLE `PosicionRobot` (
   `PosicionID` int(11) NOT NULL,
   `RobotID` int(11) NOT NULL,
@@ -333,7 +335,6 @@ INSERT INTO `PosicionRobot` (`PosicionID`, `RobotID`, `PosX`, `PosY`, `FechaHora
 -- Table structure for table `Robot`
 --
 
-DROP TABLE IF EXISTS `Robot`;
 CREATE TABLE `Robot` (
   `RobotID` int(11) NOT NULL,
   `Nombre` varchar(50) NOT NULL,
@@ -348,9 +349,9 @@ CREATE TABLE `Robot` (
 --
 
 INSERT INTO `Robot` (`RobotID`, `Nombre`, `Descripcion`, `Bateria`, `CamaraActiva`, `UltimaComunicacion`) VALUES
-(1, 'Roberto1', 'GuiaPuertas', 85, 1, '2026-04-12 16:13:33'),
-(2, 'Roberto2', 'GuiaOcio', 42, 1, '2026-04-12 16:13:33'),
-(3, 'ROBERTO', 'Robot de transporte de equipaje (Terminal 1)', 85, 1, '2026-04-12 21:06:20');
+(1, 'Roberto1', 'TurtleBot 3 Burger', 85, 1, '2026-04-12 16:13:33'),
+(2, 'Roberto2', 'TurtleBot 3 Burger', 42, 1, '2026-04-12 16:13:33'),
+(3, 'ROBERTO', 'TurtleBot 3 Burger', 85, 1, '2026-04-12 21:06:20');
 
 -- --------------------------------------------------------
 
@@ -358,12 +359,11 @@ INSERT INTO `Robot` (`RobotID`, `Nombre`, `Descripcion`, `Bateria`, `CamaraActiv
 -- Table structure for table `Tecnico`
 --
 
-DROP TABLE IF EXISTS `Tecnico`;
 CREATE TABLE `Tecnico` (
   `TecnicoID` int(11) NOT NULL,
   `Nombre` varchar(100) NOT NULL,
   `Email` varchar(100) NOT NULL,
-  `Contrasena` varchar(20) NOT NULL
+  `Contrasena` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
@@ -371,9 +371,9 @@ CREATE TABLE `Tecnico` (
 --
 
 INSERT INTO `Tecnico` (`TecnicoID`, `Nombre`, `Email`, `Contrasena`) VALUES
-(1, 'John Doe', 'john@airport.com', 'pass123'),
+(1, 'John Doe', 'john@airport.com', '$2b$10$ovTFJ3FZDmqMoGP5IcdiWedkhDegNOmAcB1far4QQwcdLNDfEOiOi'),
 (2, 'Jane Smith', 'jane@airport.com', 'secure456'),
-(3, 'Operador Principal', 'admin@aeropuerto.com', 'admin1234');
+(3, 'Michael Jackson', 'admin@aeropuerto.com', 'admin1234');
 
 -- --------------------------------------------------------
 
@@ -381,7 +381,6 @@ INSERT INTO `Tecnico` (`TecnicoID`, `Nombre`, `Email`, `Contrasena`) VALUES
 -- Table structure for table `Zona`
 --
 
-DROP TABLE IF EXISTS `Zona`;
 CREATE TABLE `Zona` (
   `ZonaID` int(11) NOT NULL,
   `AeropuertoCodigo` varchar(10) NOT NULL,
@@ -494,7 +493,7 @@ ALTER TABLE `Interaccion`
 -- AUTO_INCREMENT for table `Mantenimiento`
 --
 ALTER TABLE `Mantenimiento`
-  MODIFY `MantenimientoID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MantenimientoID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `PosicionRobot`
@@ -557,10 +556,6 @@ ALTER TABLE `PosicionRobot`
 --
 ALTER TABLE `Zona`
   ADD CONSTRAINT `Zona_ibfk_1` FOREIGN KEY (`AeropuertoCodigo`) REFERENCES `Aeropuerto` (`CodigoIATA`);
-  
--- Volvemos a activar la comprobación de claves foráneas
-SET FOREIGN_KEY_CHECKS = 1;
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
