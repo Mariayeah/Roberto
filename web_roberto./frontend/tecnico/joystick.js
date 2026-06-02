@@ -222,23 +222,23 @@ function setMovement(moveCommand) {
     
     switch(moveCommand) {
         case "delante":
-            currentLinear = 0.1;
+            currentLinear = 0.2;
             currentAngular = 0.0;
             startPublishing(); // Encendemos el bucle
             break;
         case "atras":
-            currentLinear = -0.1;
+            currentLinear = -0.2;
             currentAngular = 0.0;
             startPublishing(); // Encendemos el bucle
             break;
         case "izquierda":
-            currentLinear = 0.1;
-            currentAngular = 0.2;
+            currentLinear = 0.2;
+            currentAngular = 0.4;
             startPublishing(); // Encendemos el bucle
             break;
         case "derecha":
-            currentLinear = 0.1;
-            currentAngular = -0.2;
+            currentLinear = 0.2;
+            currentAngular = -0.4;
             startPublishing(); // Encendemos el bucle
             break;
         case "parar":
