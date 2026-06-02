@@ -108,7 +108,7 @@ window.onload = () => {
     }
 
     // Poll the backend for the real /amcl_pose every 100ms
-    setInterval(fetchTelemetry, 100);
+    // setInterval(fetchTelemetry, 100); // DESACTIVADO PARA ROBOT APAGADO
 
 /**
  * @description Actualiza la posición de los marcadores (robot y meta) en el canvas.
@@ -187,8 +187,8 @@ window.onload = () => {
                             sbBat.innerHTML = `<i class="ph ph-battery-medium"></i> ${robot.Bateria}%`;
                             sbBat.style.color = "inherit"; 
                         }
-                        // Actualizar panel principal para el robot activo (1)
-                        if (robot.RobotID === 1) {
+                        // Actualizar panel principal para el robot activo (3)
+                        if (robot.RobotID === 3) {
                             const mainBat = document.getElementById('battery-percent');
                             if (mainBat) {
                                 mainBat.textContent = `${robot.Bateria}%`;
@@ -319,7 +319,10 @@ let fullHistoryData = [];
 async function updateHistoryUI() {
     try {
         const response = await fetch('/api/historial'); 
-        fullHistoryData = await response.json();
+        const allData = await response.json();
+        
+        // Filtrar específicamente para Roberto3 ya que está apagado
+        fullHistoryData = allData.filter(log => log.Robot === 'Roberto3');
 
         // 1. Render Dashboard Preview
         renderPreview(fullHistoryData.slice(0, 4));
@@ -390,6 +393,12 @@ window.changePage = (page, totalPages) => {
 function renderPreview(data) {
     const previewList = document.getElementById('history-preview-list');
     if (!previewList) return;
+    
+    if (data.length === 0) {
+        previewList.innerHTML = '<p style="text-align:center; color:gray; padding: 20px;">Sin registro de viajes recientes</p>';
+        return;
+    }
+    
     previewList.innerHTML = data.map(log => `
         <div class="history-item-row">
             <div class="history-text-group">
@@ -504,7 +513,7 @@ function renderTable(data) {
     const paginatedData = data.slice(start, end); // Solo toma las 10 filas de esta página
 
     if (total === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">No se encontraron resultados</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">Sin registro de viajes recientes</td></tr>`;
         if (stats) stats.innerText = "No hay interacciones";
         return;
     }
@@ -635,41 +644,6 @@ function renderizarIncidencias() {
         </div>
     `).join('') || '<p style="text-align:center; color:gray;">No hay incidencias.</p>';
 }
-/**
- * Realiza la petición a la API y abre el pop-up con la ficha técnica del robot seleccionado.
- * @author Mery
- */
-async function abrirFichaRobot(robotId) {
-    try {
-        const response = await fetch(`/api/robot/${robotId}`);
-        if (!response.ok) throw new Error('Error al recuperar los datos del robot');
-        
-        const data = await response.json();
-        
-        // Inyectamos los datos en los contenedores del pop-up
-        document.getElementById('infoCardTitle').textContent = `Ficha de Roberto ${robotId}`;
-        document.getElementById('popup-robot-id').textContent = data.id_codigo;
-        document.getElementById('popup-robot-modelo').textContent = data.modelo;
-        document.getElementById('popup-robot-tecnico').textContent = data.tecnico_asociado;
-        
-        // CAMBIO AQUÍ: Usamos display = 'flex' para que se centre en pantalla con vuestro CSS
-        document.getElementById('infoCard').style.display = 'flex';
-        
-    } catch (error) {
-        console.error('Error al cargar los detalles:', error);
-    }
-}
-
-// CAMBIO AQUÍ: Ocultamos cambiando el display a 'none'
-window.closeInfoCard = function() {
-    document.getElementById('infoCard').style.display = 'none';
-}
-
-// Asegúrate de que vuestra función existente para cerrar limpie o oculte el contenedor
-function closeInfoCard() {
-    const infoCard = document.getElementById('infoCard');
-    infoCard.classList.remove('active'); // O infoCard.style.display = 'none'
-}
 
 window.confirmarResolucion = async (id) => {
     const accion = document.getElementById(`t-${id}`).value;
@@ -685,3 +659,5 @@ window.confirmarResolucion = async (id) => {
 
 // Polling suave para el badge
 setInterval(actualizarIncidencias, 10000);
+
+/* --- HISTORIAL FUNCIONAL END --- */
